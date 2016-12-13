@@ -4,10 +4,12 @@ package linode
 
 import (
 	"errors"
-	"os"
+	"log"
 	"strings"
 	"time"
 
+	dp "github.com/appscode/go-dns/provider"
+	"github.com/kelseyhightower/envconfig"
 	"github.com/timewasted/linode/dns"
 	"github.com/xenolf/lego/acme"
 )
@@ -28,22 +30,32 @@ type DNSProvider struct {
 	linode *dns.DNS
 }
 
+type Options struct {
+	ApiKey string `json:"api_key" envconfig:"LINODE_API_KEY"`
+}
+
+var _ dp.Provider = &DNSProvider{}
+
 // NewDNSProvider returns a DNSProvider instance configured for Linode.
 // Credentials must be passed in the environment variable: LINODE_API_KEY.
 func NewDNSProvider() (*DNSProvider, error) {
-	apiKey := os.Getenv("LINODE_API_KEY")
-	return NewDNSProviderCredentials(apiKey)
+	var opt Options
+	err := envconfig.Process("", &opt)
+	if err != nil {
+		return nil, err
+	}
+	return NewDNSProviderCredentials(opt)
 }
 
 // NewDNSProviderCredentials uses the supplied credentials to return a
 // DNSProvider instance configured for Linode.
-func NewDNSProviderCredentials(apiKey string) (*DNSProvider, error) {
-	if len(apiKey) == 0 {
+func NewDNSProviderCredentials(opt Options) (*DNSProvider, error) {
+	if len(opt.ApiKey) == 0 {
 		return nil, errors.New("Linode credentials missing")
 	}
 
 	return &DNSProvider{
-		linode: dns.New(apiKey),
+		linode: dns.New(opt.ApiKey),
 	}, nil
 }
 
@@ -64,49 +76,44 @@ func (p *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return
 }
 
-// Present creates a TXT record using the specified parameters.
-func (p *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value, _ := acme.DNS01Record(domain, keyAuth)
-	zone, err := p.getHostedZoneInfo(fqdn)
+func (p *DNSProvider) EnsureARecord(domain string, ip string) error {
+	zone, err := p.getHostedZoneInfo(acme.ToFqdn(domain))
 	if err != nil {
 		return err
 	}
 
-	if _, err = p.linode.CreateDomainResourceTXT(zone.domainId, acme.UnFqdn(fqdn), value, 60); err != nil {
+	records, err := p.linode.GetResourcesByType(zone.domainId, "A")
+	if err != nil {
 		return err
 	}
-
-	return nil
+	for _, record := range records {
+		if record.Type == "A" && record.Name == zone.resourceName && record.Target == ip {
+			log.Println("DNS is already configured. No DNS related change is necessary.")
+			return nil
+		}
+	}
+	_, err = p.linode.CreateDomainResourceA(zone.domainId, zone.resourceName, ip, 300)
+	return err
 }
 
-// CleanUp removes the TXT record matching the specified parameters.
-func (p *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, value, _ := acme.DNS01Record(domain, keyAuth)
-	zone, err := p.getHostedZoneInfo(fqdn)
+func (p *DNSProvider) DeleteARecords(domain string) error {
+	zone, err := p.getHostedZoneInfo(acme.ToFqdn(domain))
 	if err != nil {
 		return err
 	}
 
-	// Get all TXT records for the specified domain.
-	resources, err := p.linode.GetResourcesByType(zone.domainId, "TXT")
+	records, err := p.linode.GetResourcesByType(zone.domainId, "A")
 	if err != nil {
 		return err
 	}
-
-	// Remove the specified resource, if it exists.
-	for _, resource := range resources {
-		if resource.Name == zone.resourceName && resource.Target == value {
-			resp, err := p.linode.DeleteDomainResource(resource.DomainID, resource.ResourceID)
+	for _, record := range records {
+		if record.Type == "A" && record.Name == zone.resourceName {
+			_, err = p.linode.DeleteDomainResource(record.DomainID, record.ResourceID)
 			if err != nil {
 				return err
 			}
-			if resp.ResourceID != resource.ResourceID {
-				return errors.New("Error deleting resource: resource IDs do not match!")
-			}
-			break
 		}
 	}
-
 	return nil
 }
 

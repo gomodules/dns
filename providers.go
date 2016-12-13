@@ -7,6 +7,7 @@ import (
 	"github.com/appscode/go-dns/cloudflare"
 	"github.com/appscode/go-dns/digitalocean"
 	"github.com/appscode/go-dns/googlecloud"
+	"github.com/appscode/go-dns/linode"
 	dp "github.com/appscode/go-dns/provider"
 	"github.com/appscode/go-dns/vultr"
 )
@@ -37,8 +38,8 @@ func NewDNSChallengeProviderByName(name string) (dp.Provider, error) {
 	//	provider, err = gandi.NewDNSProvider()
 	case "gcloud":
 		provider, err = googlecloud.NewDNSProvider()
-	//case "linode":
-	//	provider, err = linode.NewDNSProvider()
+	case "linode":
+		provider, err = linode.NewDNSProvider()
 	//case "manual":
 	//	provider, err = acme.NewDNSProviderManual()
 	//case "namecheap":
