@@ -8,6 +8,7 @@ import (
 	"github.com/appscode/go-dns/digitalocean"
 	"github.com/appscode/go-dns/googlecloud"
 	dp "github.com/appscode/go-dns/provider"
+	"github.com/appscode/go-dns/vultr"
 )
 
 func NewDNSChallengeProviderByName(name string) (dp.Provider, error) {
@@ -46,8 +47,8 @@ func NewDNSChallengeProviderByName(name string) (dp.Provider, error) {
 	//	provider, err = rackspace.NewDNSProvider()
 	//case "route53":
 	//	provider, err = route53.NewDNSProvider()
-	//case "vultr":
-	//	provider, err = vultr.NewDNSProvider()
+	case "vultr":
+		provider, err = vultr.NewDNSProvider()
 	//case "ovh":
 	//	provider, err = ovh.NewDNSProvider()
 	//case "pdns":

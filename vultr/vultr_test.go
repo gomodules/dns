@@ -12,11 +12,13 @@ var (
 	liveTest bool
 	apiKey   string
 	domain   string
+	ip       string
 )
 
 func init() {
 	apiKey = os.Getenv("VULTR_API_KEY")
 	domain = os.Getenv("VULTR_TEST_DOMAIN")
+	ip = os.Getenv("VULTR_TEST_IP")
 	liveTest = len(apiKey) > 0 && len(domain) > 0
 }
 
@@ -38,7 +40,7 @@ func TestNewDNSProviderMissingCredErr(t *testing.T) {
 	assert.EqualError(t, err, "Vultr credentials missing")
 }
 
-func TestLivePresent(t *testing.T) {
+func TestLiveEnsureARecord(t *testing.T) {
 	if !liveTest {
 		t.Skip("skipping live test")
 	}
@@ -46,11 +48,11 @@ func TestLivePresent(t *testing.T) {
 	provider, err := NewDNSProvider()
 	assert.NoError(t, err)
 
-	err = provider.Present(domain, "", "123d==")
+	err = provider.EnsureARecord(domain, ip)
 	assert.NoError(t, err)
 }
 
-func TestLiveCleanUp(t *testing.T) {
+func TestLiveDeleteARecords(t *testing.T) {
 	if !liveTest {
 		t.Skip("skipping live test")
 	}
@@ -60,6 +62,6 @@ func TestLiveCleanUp(t *testing.T) {
 	provider, err := NewDNSProvider()
 	assert.NoError(t, err)
 
-	err = provider.CleanUp(domain, "", "123d==")
+	err = provider.DeleteARecords(domain)
 	assert.NoError(t, err)
 }

@@ -4,11 +4,14 @@
 package vultr
 
 import (
+	"errors"
 	"fmt"
-	"os"
+	"log"
 	"strings"
 
 	vultr "github.com/JamesClonk/vultr/lib"
+	dp "github.com/appscode/go-dns/provider"
+	"github.com/kelseyhightower/envconfig"
 	"github.com/xenolf/lego/acme"
 )
 
@@ -17,59 +20,74 @@ type DNSProvider struct {
 	client *vultr.Client
 }
 
+type Options struct {
+	ApiKey string `json:"api_key" envconfig:"VULTR_API_KEY"`
+}
+
+var _ dp.Provider = &DNSProvider{}
+
 // NewDNSProvider returns a DNSProvider instance with a configured Vultr client.
 // Authentication uses the VULTR_API_KEY environment variable.
 func NewDNSProvider() (*DNSProvider, error) {
-	apiKey := os.Getenv("VULTR_API_KEY")
-	return NewDNSProviderCredentials(apiKey)
+	var opt Options
+	err := envconfig.Process("", &opt)
+	if err != nil {
+		return nil, err
+	}
+	return NewDNSProviderCredentials(opt)
 }
 
 // NewDNSProviderCredentials uses the supplied credentials to return a DNSProvider
 // instance configured for Vultr.
-func NewDNSProviderCredentials(apiKey string) (*DNSProvider, error) {
-	if apiKey == "" {
-		return nil, fmt.Errorf("Vultr credentials missing")
+func NewDNSProviderCredentials(opt Options) (*DNSProvider, error) {
+	if opt.ApiKey == "" {
+		return nil, errors.New("Vultr credentials missing")
 	}
 
 	c := &DNSProvider{
-		client: vultr.NewClient(apiKey, nil),
+		client: vultr.NewClient(opt.ApiKey, nil),
 	}
 
 	return c, nil
 }
 
-// Present creates a TXT record to fulfil the DNS-01 challenge.
-func (c *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value, ttl := acme.DNS01Record(domain, keyAuth)
-
+func (c *DNSProvider) EnsureARecord(domain string, ip string) error {
 	zoneDomain, err := c.getHostedZone(domain)
 	if err != nil {
 		return err
 	}
+	relative := toRelativeRecord(domain, zoneDomain)
 
-	name := c.extractRecordName(fqdn, zoneDomain)
-
-	err = c.client.CreateDnsRecord(zoneDomain, name, "TXT", `"`+value+`"`, 0, ttl)
-	if err != nil {
-		return fmt.Errorf("Vultr API call failed: %v", err)
-	}
-
-	return nil
-}
-
-// CleanUp removes the TXT record matching the specified parameters.
-func (c *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _, _ := acme.DNS01Record(domain, keyAuth)
-
-	zoneDomain, records, err := c.findTxtRecords(domain, fqdn)
+	records, err := c.client.GetDnsRecords(zoneDomain)
 	if err != nil {
 		return err
 	}
+	for _, record := range records {
+		if record.Type == "A" && record.Name == relative && record.Data == ip {
+			log.Println("DNS is already configured. No DNS related change is necessary.")
+			return nil
+		}
+	}
+	return c.client.CreateDnsRecord(zoneDomain, relative, "A", ip, 0, 300)
+}
 
-	for _, rec := range records {
-		err := c.client.DeleteDnsRecord(zoneDomain, rec.RecordID)
-		if err != nil {
-			return err
+func (c *DNSProvider) DeleteARecords(domain string) error {
+	zoneDomain, err := c.getHostedZone(domain)
+	if err != nil {
+		return err
+	}
+	relative := toRelativeRecord(domain, zoneDomain)
+
+	records, err := c.client.GetDnsRecords(zoneDomain)
+	if err != nil {
+		return err
+	}
+	for _, record := range records {
+		if record.Type == "A" && record.Name == relative {
+			err = c.client.DeleteDnsRecord(zoneDomain, record.RecordID)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -96,32 +114,15 @@ func (c *DNSProvider) getHostedZone(domain string) (string, error) {
 	return hostedDomain.Domain, nil
 }
 
-func (c *DNSProvider) findTxtRecords(domain, fqdn string) (string, []vultr.DnsRecord, error) {
-	zoneDomain, err := c.getHostedZone(domain)
-	if err != nil {
-		return "", nil, err
-	}
-
-	var records []vultr.DnsRecord
-	result, err := c.client.GetDnsRecords(zoneDomain)
-	if err != nil {
-		return "", records, fmt.Errorf("Vultr API call has failed: %v", err)
-	}
-
-	recordName := c.extractRecordName(fqdn, zoneDomain)
-	for _, record := range result {
-		if record.Type == "TXT" && record.Name == recordName {
-			records = append(records, record)
-		}
-	}
-
-	return zoneDomain, records, nil
-}
-
 func (c *DNSProvider) extractRecordName(fqdn, domain string) string {
 	name := acme.UnFqdn(fqdn)
 	if idx := strings.Index(name, "."+domain); idx != -1 {
 		return name[:idx]
 	}
 	return name
+}
+
+// Returns the relative record to the domain
+func toRelativeRecord(domain, zone string) string {
+	return acme.UnFqdn(strings.TrimSuffix(domain, zone))
 }

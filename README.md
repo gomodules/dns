@@ -5,6 +5,7 @@ Unified DNS client for GOlang
 - [x] Google Cloud DNS
 - [x] Cloudflare
 - [x] DigitalOcean
+- [x] Vultr
 
 ##Acknowledgement
 The initial implementation of this library was forked from https://github.com/xenolf/lego/tree/master/providers/dns
