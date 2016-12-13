@@ -1,5 +1,5 @@
-hash: 2a49ac09e65c454305aceb6cf436d3b695289896da9e1b03fbc96e2fb4d82840
-updated: 2016-12-13T22:26:37.902998315-08:00
+hash: be1543e71eec18ade49ed5db44d674a73aa34ec859221161bf62087b3e83ebeb
+updated: 2016-12-13T22:30:58.642092619-08:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -46,6 +46,8 @@ imports:
   - autorest/date
   - autorest/to
   - autorest/validation
+- name: github.com/cloudflare/cloudflare-go
+  version: ba610b87e64f5e99e8ddd614e50669c66c2ec9b5
 - name: github.com/decker502/dnspod-go
   version: f6b1d56f1c048bd94d7e42ac36efb4d57b069b6f
 - name: github.com/dgrijalva/jwt-go
@@ -80,6 +82,8 @@ imports:
   version: 99a1e00db4397517d87ab82c92b9d8cb60e5940b
   subpackages:
   - ovh
+- name: github.com/pkg/errors
+  version: 248dadf4e9068a0b3e79f02ed0a610d935de5302
 - name: github.com/pyr/egoscale
   version: ab4b0d7ff424c462da486aef27f354cdeb29a319
   subpackages:

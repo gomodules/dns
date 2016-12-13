@@ -3,7 +3,6 @@ package cloudflare
 import (
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -13,12 +12,14 @@ var (
 	cflareEmail    string
 	cflareAPIKey   string
 	cflareDomain   string
+	cflareIP       string
 )
 
 func init() {
 	cflareEmail = os.Getenv("CLOUDFLARE_EMAIL")
 	cflareAPIKey = os.Getenv("CLOUDFLARE_API_KEY")
 	cflareDomain = os.Getenv("CLOUDFLARE_DOMAIN")
+	cflareIP = os.Getenv("CLOUDFLARE_IP")
 	if len(cflareEmail) > 0 && len(cflareAPIKey) > 0 && len(cflareDomain) > 0 {
 		cflareLiveTest = true
 	}
@@ -32,7 +33,10 @@ func restoreCloudFlareEnv() {
 func TestNewDNSProviderValid(t *testing.T) {
 	os.Setenv("CLOUDFLARE_EMAIL", "")
 	os.Setenv("CLOUDFLARE_API_KEY", "")
-	_, err := NewDNSProviderCredentials("123", "123")
+	_, err := NewDNSProviderCredentials(Options{
+		Email:  "123",
+		APIKey: "123",
+	})
 	assert.NoError(t, err)
 	restoreCloudFlareEnv()
 }
@@ -53,28 +57,32 @@ func TestNewDNSProviderMissingCredErr(t *testing.T) {
 	restoreCloudFlareEnv()
 }
 
-func TestCloudFlarePresent(t *testing.T) {
+func TestCloudFlareEnsureARecord(t *testing.T) {
 	if !cflareLiveTest {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProviderCredentials(cflareEmail, cflareAPIKey)
+	provider, err := NewDNSProviderCredentials(Options{
+		Email:  cflareEmail,
+		APIKey: cflareAPIKey,
+	})
 	assert.NoError(t, err)
 
-	err = provider.Present(cflareDomain, "", "123d==")
+	err = provider.EnsureARecord(cflareDomain, cflareIP)
 	assert.NoError(t, err)
 }
 
-func TestCloudFlareCleanUp(t *testing.T) {
+func TestCloudFlareDeleteARecords(t *testing.T) {
 	if !cflareLiveTest {
 		t.Skip("skipping live test")
 	}
 
-	time.Sleep(time.Second * 2)
-
-	provider, err := NewDNSProviderCredentials(cflareEmail, cflareAPIKey)
+	provider, err := NewDNSProviderCredentials(Options{
+		Email:  cflareEmail,
+		APIKey: cflareAPIKey,
+	})
 	assert.NoError(t, err)
 
-	err = provider.CleanUp(cflareDomain, "", "123d==")
+	err = provider.DeleteARecords(cflareDomain)
 	assert.NoError(t, err)
 }
