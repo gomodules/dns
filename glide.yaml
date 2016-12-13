@@ -23,6 +23,7 @@ import:
   - service/route53
 - package: github.com/cloudflare/cloudflare-go
   version: v0.7.1-beta
+- package: github.com/digitalocean/godo
 - package: github.com/decker502/dnspod-go
 - package: github.com/edeckers/auroradnsclient
   version: v1.0.1

@@ -1,117 +1,73 @@
 package digitalocean
 
 import (
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
+	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-var fakeDigitalOceanAuth = "asdf1234"
+var (
+	doLiveTest  bool
+	doAuthToken string
+	doDomain    string
+	doIP        string
+)
 
-func TestDigitalOceanPresent(t *testing.T) {
-	var requestReceived bool
-
-	mock := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestReceived = true
-
-		if got, want := r.Method, "POST"; got != want {
-			t.Errorf("Expected method to be '%s' but got '%s'", want, got)
-		}
-		if got, want := r.URL.Path, "/v2/domains/example.com/records"; got != want {
-			t.Errorf("Expected path to be '%s' but got '%s'", want, got)
-		}
-		if got, want := r.Header.Get("Content-Type"), "application/json"; got != want {
-			t.Errorf("Expected Content-Type to be '%s' but got '%s'", want, got)
-		}
-		if got, want := r.Header.Get("Authorization"), "Bearer asdf1234"; got != want {
-			t.Errorf("Expected Authorization to be '%s' but got '%s'", want, got)
-		}
-
-		reqBody, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			t.Fatalf("Error reading request body: %v", err)
-		}
-		if got, want := string(reqBody), `{"type":"TXT","name":"_acme-challenge.example.com.","data":"w6uP8Tcg6K2QR905Rms8iXTlksL6OD1KOWBxTK7wxPI"}`; got != want {
-			t.Errorf("Expected body data to be: `%s` but got `%s`", want, got)
-		}
-
-		w.WriteHeader(http.StatusCreated)
-		fmt.Fprintf(w, `{
-			"domain_record": {
-				"id": 1234567,
-				"type": "TXT",
-				"name": "_acme-challenge",
-				"data": "w6uP8Tcg6K2QR905Rms8iXTlksL6OD1KOWBxTK7wxPI",
-				"priority": null,
-				"port": null,
-				"weight": null
-			}
-		}`)
-	}))
-	defer mock.Close()
-	digitalOceanBaseURL = mock.URL
-
-	doprov, err := NewDNSProviderCredentials(fakeDigitalOceanAuth)
-	if doprov == nil {
-		t.Fatal("Expected non-nil DigitalOcean provider, but was nil")
-	}
-	if err != nil {
-		t.Fatalf("Expected no error creating provider, but got: %v", err)
-	}
-
-	err = doprov.Present("example.com", "", "foobar")
-	if err != nil {
-		t.Fatalf("Expected no error creating TXT record, but got: %v", err)
-	}
-	if !requestReceived {
-		t.Error("Expected request to be received by mock backend, but it wasn't")
+func init() {
+	doAuthToken = os.Getenv("DO_AUTH_TOKEN")
+	doDomain = os.Getenv("DO_DOMAIN")
+	doIP = os.Getenv("DO_IP")
+	if len(doAuthToken) > 0 && len(doDomain) > 0 {
+		doLiveTest = true
 	}
 }
 
-func TestDigitalOceanCleanUp(t *testing.T) {
-	var requestReceived bool
+func restoreDigitalOceanEnv() {
+	os.Setenv("DO_AUTH_TOKEN", doAuthToken)
+}
 
-	mock := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestReceived = true
+func TestNewDNSProviderValid(t *testing.T) {
+	os.Setenv("DO_AUTH_TOKEN", "")
+	_, err := NewDNSProviderCredentials(Options{AuthToken: "123"})
+	assert.NoError(t, err)
+	restoreDigitalOceanEnv()
+}
 
-		if got, want := r.Method, "DELETE"; got != want {
-			t.Errorf("Expected method to be '%s' but got '%s'", want, got)
-		}
-		if got, want := r.URL.Path, "/v2/domains/example.com/records/1234567"; got != want {
-			t.Errorf("Expected path to be '%s' but got '%s'", want, got)
-		}
-		// NOTE: Even though the body is empty, DigitalOcean API docs still show setting this Content-Type...
-		if got, want := r.Header.Get("Content-Type"), "application/json"; got != want {
-			t.Errorf("Expected Content-Type to be '%s' but got '%s'", want, got)
-		}
-		if got, want := r.Header.Get("Authorization"), "Bearer asdf1234"; got != want {
-			t.Errorf("Expected Authorization to be '%s' but got '%s'", want, got)
-		}
+func TestNewDNSProviderValidEnv(t *testing.T) {
+	os.Setenv("DO_AUTH_TOKEN", "123")
+	_, err := NewDNSProvider()
+	assert.NoError(t, err)
+	restoreDigitalOceanEnv()
+}
 
-		w.WriteHeader(http.StatusNoContent)
-	}))
-	defer mock.Close()
-	digitalOceanBaseURL = mock.URL
+func TestNewDNSProviderMissingCredErr(t *testing.T) {
+	os.Setenv("DO_AUTH_TOKEN", "")
+	_, err := NewDNSProvider()
+	assert.EqualError(t, err, "DigitalOcean credentials missing")
+	restoreDigitalOceanEnv()
+}
 
-	doprov, err := NewDNSProviderCredentials(fakeDigitalOceanAuth)
-	if doprov == nil {
-		t.Fatal("Expected non-nil DigitalOcean provider, but was nil")
-	}
-	if err != nil {
-		t.Fatalf("Expected no error creating provider, but got: %v", err)
+func TestDigitalOceanEnsureARecord(t *testing.T) {
+	if !doLiveTest {
+		t.Skip("skipping live test")
 	}
 
-	doprov.recordIDsMu.Lock()
-	doprov.recordIDs["_acme-challenge.example.com."] = 1234567
-	doprov.recordIDsMu.Unlock()
+	provider, err := NewDNSProviderCredentials(Options{AuthToken: doAuthToken})
+	assert.NoError(t, err)
 
-	err = doprov.CleanUp("example.com", "", "")
-	if err != nil {
-		t.Fatalf("Expected no error removing TXT record, but got: %v", err)
+	err = provider.EnsureARecord(doDomain, doIP)
+	assert.NoError(t, err)
+}
+
+func TestDigitalOceanDeleteARecords(t *testing.T) {
+	if !doLiveTest {
+		t.Skip("skipping live test")
 	}
-	if !requestReceived {
-		t.Error("Expected request to be received by mock backend, but it wasn't")
-	}
+
+	provider, err := NewDNSProviderCredentials(Options{AuthToken: doAuthToken})
+	assert.NoError(t, err)
+
+	err = provider.DeleteARecords(doDomain)
+	assert.NoError(t, err)
 }

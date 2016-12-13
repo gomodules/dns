@@ -1,5 +1,5 @@
-hash: be1543e71eec18ade49ed5db44d674a73aa34ec859221161bf62087b3e83ebeb
-updated: 2016-12-13T22:30:58.642092619-08:00
+hash: 761a17d709d9d67f5a0a7894f8a7159df77cb86888aeed1293ce8639bb4727c6
+updated: 2016-12-13T22:33:21.81889641-08:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -52,6 +52,8 @@ imports:
   version: f6b1d56f1c048bd94d7e42ac36efb4d57b069b6f
 - name: github.com/dgrijalva/jwt-go
   version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
+- name: github.com/digitalocean/godo
+  version: 758b5be38ee8c630b0db89b00b7b87f064839099
 - name: github.com/edeckers/auroradnsclient
   version: 8b777c170cfd377aa16bb4368f093017dddef3f9
   subpackages:
@@ -66,6 +68,10 @@ imports:
   version: 888eb0692c857ec880338addf316bd662d5e630e
   subpackages:
   - proto
+- name: github.com/google/go-querystring
+  version: 547ef5ac979778feb2f760cdb5f4eae1a2207b86
+  subpackages:
+  - query
 - name: github.com/JamesClonk/vultr
   version: d773bbc4323342d46a9fb4839669287250975b77
   subpackages:
@@ -90,6 +96,8 @@ imports:
   - src/egoscale
 - name: github.com/Sirupsen/logrus
   version: 3ec0642a7fb6488f65b06f9040adc67e3990296a
+- name: github.com/tent/http-link-go
+  version: ac974c61c2f990f4115b119354b5e0b47550e888
 - name: github.com/timewasted/linode
   version: 37e84520dcf74488f67654f9c775b9752c232dc1
   subpackages:

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/appscode/go-dns/cloudflare"
+	"github.com/appscode/go-dns/digitalocean"
 	"github.com/appscode/go-dns/googlecloud"
 	dp "github.com/appscode/go-dns/provider"
 )
@@ -19,8 +20,8 @@ func NewDNSChallengeProviderByName(name string) (dp.Provider, error) {
 	//	provider, err = auroradns.NewDNSProvider()
 	case "cloudflare":
 		provider, err = cloudflare.NewDNSProvider()
-	//case "digitalocean":
-	//	provider, err = digitalocean.NewDNSProvider()
+	case "digitalocean":
+		provider, err = digitalocean.NewDNSProvider()
 	//case "dnsimple":
 	//	provider, err = dnsimple.NewDNSProvider()
 	//case "dnsmadeeasy":
