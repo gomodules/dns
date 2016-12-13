@@ -1,14 +1,11 @@
-package route53
+package aws
 
 import (
-	"net/http/httptest"
 	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,30 +13,27 @@ var (
 	route53Secret string
 	route53Key    string
 	route53Region string
+	domain        string
+	ip            string
+	liveTest      bool
 )
 
 func init() {
 	route53Key = os.Getenv("AWS_ACCESS_KEY_ID")
 	route53Secret = os.Getenv("AWS_SECRET_ACCESS_KEY")
 	route53Region = os.Getenv("AWS_REGION")
+
+	domain = os.Getenv("AWS_DOMAIN")
+	ip = os.Getenv("AWS_IP")
+	if len(domain) > 0 {
+		liveTest = true
+	}
 }
 
 func restoreRoute53Env() {
 	os.Setenv("AWS_ACCESS_KEY_ID", route53Key)
 	os.Setenv("AWS_SECRET_ACCESS_KEY", route53Secret)
 	os.Setenv("AWS_REGION", route53Region)
-}
-
-func makeRoute53Provider(ts *httptest.Server) *DNSProvider {
-	config := &aws.Config{
-		Credentials: credentials.NewStaticCredentials("abc", "123", " "),
-		Endpoint:    aws.String(ts.URL),
-		Region:      aws.String("mock-region"),
-		MaxRetries:  aws.Int(1),
-	}
-
-	client := route53.New(session.New(config))
-	return &DNSProvider{client: client}
 }
 
 func TestCredentialsFromEnv(t *testing.T) {
@@ -67,21 +61,26 @@ func TestRegionFromEnv(t *testing.T) {
 	restoreRoute53Env()
 }
 
-func TestRoute53Present(t *testing.T) {
-	mockResponses := MockResponseMap{
-		"/2013-04-01/hostedzonesbyname":         MockResponse{StatusCode: 200, Body: ListHostedZonesByNameResponse},
-		"/2013-04-01/hostedzone/ABCDEFG/rrset/": MockResponse{StatusCode: 200, Body: ChangeResourceRecordSetsResponse},
-		"/2013-04-01/change/123456":             MockResponse{StatusCode: 200, Body: GetChangeResponse},
+func TestLiveEnsureARecord(t *testing.T) {
+	if !liveTest {
+		t.Skip("skipping live test")
 	}
 
-	ts := newMockServer(t, mockResponses)
-	defer ts.Close()
+	provider, err := NewDNSProvider()
+	assert.NoError(t, err)
 
-	provider := makeRoute53Provider(ts)
+	err = provider.EnsureARecord(domain, ip)
+	assert.NoError(t, err)
+}
 
-	domain := "example.com"
-	keyAuth := "123456d=="
+func TestLiveDeleteARecords(t *testing.T) {
+	if !liveTest {
+		t.Skip("skipping live test")
+	}
 
-	err := provider.Present(domain, "", keyAuth)
-	assert.NoError(t, err, "Expected Present to return no error")
+	provider, err := NewDNSProvider()
+	assert.NoError(t, err)
+
+	err = provider.DeleteARecords(domain)
+	assert.NoError(t, err)
 }

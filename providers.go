@@ -4,6 +4,7 @@ package dns
 import (
 	"fmt"
 
+	"github.com/appscode/go-dns/aws"
 	"github.com/appscode/go-dns/azure"
 	"github.com/appscode/go-dns/cloudflare"
 	"github.com/appscode/go-dns/digitalocean"
@@ -47,8 +48,9 @@ func NewDNSChallengeProviderByName(name string) (dp.Provider, error) {
 	//	provider, err = namecheap.NewDNSProvider()
 	//case "rackspace":
 	//	provider, err = rackspace.NewDNSProvider()
-	//case "route53":
-	//	provider, err = route53.NewDNSProvider()
+	case "aws":
+	case "route53":
+		provider, err = aws.NewDNSProvider()
 	case "vultr":
 		provider, err = vultr.NewDNSProvider()
 	//case "ovh":
