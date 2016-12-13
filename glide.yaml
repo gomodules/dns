@@ -1,0 +1,60 @@
+package: github.com/appscode/go-dns
+import:
+- package: github.com/Azure/azure-sdk-for-go
+  version: v7.0.1-beta
+  subpackages:
+  - arm/dns
+- package: github.com/Azure/go-autorest
+  version: v7.2.2
+  subpackages:
+  - autorest/azure
+  - autorest/to
+- package: github.com/JamesClonk/vultr
+  version: v1.11
+  subpackages:
+  - lib
+- package: github.com/aws/aws-sdk-go
+  version: v1.6.2
+  subpackages:
+  - aws
+  - aws/client
+  - aws/request
+  - aws/session
+  - service/route53
+- package: github.com/decker502/dnspod-go
+- package: github.com/edeckers/auroradnsclient
+  version: v1.0.1
+  subpackages:
+  - records
+  - zones
+- package: github.com/ovh/go-ovh
+  subpackages:
+  - ovh
+- package: github.com/pyr/egoscale
+  subpackages:
+  - src/egoscale
+- package: github.com/timewasted/linode
+  subpackages:
+  - dns
+- package: github.com/weppos/dnsimple-go
+  subpackages:
+  - dnsimple
+- package: github.com/xenolf/lego
+  version: v0.3.1
+  subpackages:
+  - acme
+- package: golang.org/x/net
+  subpackages:
+  - context
+- package: golang.org/x/oauth2
+  subpackages:
+  - google
+- package: google.golang.org/api
+  subpackages:
+  - dns/v1
+testImport:
+- package: github.com/stretchr/testify
+  version: v1.1.4
+  subpackages:
+  - assert
+  - require
