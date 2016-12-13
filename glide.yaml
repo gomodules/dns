@@ -27,6 +27,7 @@ import:
   subpackages:
   - records
   - zones
+- package: github.com/kelseyhightower/envconfig
 - package: github.com/ovh/go-ovh
   subpackages:
   - ovh

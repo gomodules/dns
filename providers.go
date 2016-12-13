@@ -4,6 +4,7 @@ package dns
 import (
 	"fmt"
 
+	"github.com/appscode/go-dns/googlecloud"
 	dp "github.com/appscode/go-dns/provider"
 )
 
@@ -31,8 +32,8 @@ func NewDNSChallengeProviderByName(name string) (dp.Provider, error) {
 	//	provider, err = exoscale.NewDNSProvider()
 	//case "gandi":
 	//	provider, err = gandi.NewDNSProvider()
-	//case "gcloud":
-	//	provider, err = googlecloud.NewDNSProvider()
+	case "gcloud":
+		provider, err = googlecloud.NewDNSProvider()
 	//case "linode":
 	//	provider, err = linode.NewDNSProvider()
 	//case "manual":
