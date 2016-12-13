@@ -62,7 +62,6 @@ var TypeToRR = map[uint16]func() RR{
 	TypeRRSIG:      func() RR { return new(RRSIG) },
 	TypeRT:         func() RR { return new(RT) },
 	TypeSIG:        func() RR { return new(SIG) },
-	TypeSMIMEA:     func() RR { return new(SMIMEA) },
 	TypeSOA:        func() RR { return new(SOA) },
 	TypeSPF:        func() RR { return new(SPF) },
 	TypeSRV:        func() RR { return new(SRV) },
@@ -142,7 +141,6 @@ var TypeToString = map[uint16]string{
 	TypeRT:         "RT",
 	TypeReserved:   "Reserved",
 	TypeSIG:        "SIG",
-	TypeSMIMEA:     "SMIMEA",
 	TypeSOA:        "SOA",
 	TypeSPF:        "SPF",
 	TypeSRV:        "SRV",
@@ -215,7 +213,6 @@ func (rr *RP) Header() *RR_Header         { return &rr.Hdr }
 func (rr *RRSIG) Header() *RR_Header      { return &rr.Hdr }
 func (rr *RT) Header() *RR_Header         { return &rr.Hdr }
 func (rr *SIG) Header() *RR_Header        { return &rr.Hdr }
-func (rr *SMIMEA) Header() *RR_Header     { return &rr.Hdr }
 func (rr *SOA) Header() *RR_Header        { return &rr.Hdr }
 func (rr *SPF) Header() *RR_Header        { return &rr.Hdr }
 func (rr *SRV) Header() *RR_Header        { return &rr.Hdr }
@@ -517,14 +514,6 @@ func (rr *RT) len() int {
 	l += len(rr.Host) + 1
 	return l
 }
-func (rr *SMIMEA) len() int {
-	l := rr.Hdr.len()
-	l += 1 // Usage
-	l += 1 // Selector
-	l += 1 // MatchingType
-	l += len(rr.Certificate)/2 + 1
-	return l
-}
 func (rr *SOA) len() int {
 	l := rr.Hdr.len()
 	l += len(rr.Ns) + 1
@@ -790,9 +779,6 @@ func (rr *RRSIG) copy() RR {
 }
 func (rr *RT) copy() RR {
 	return &RT{*rr.Hdr.copyHeader(), rr.Preference, rr.Host}
-}
-func (rr *SMIMEA) copy() RR {
-	return &SMIMEA{*rr.Hdr.copyHeader(), rr.Usage, rr.Selector, rr.MatchingType, rr.Certificate}
 }
 func (rr *SOA) copy() RR {
 	return &SOA{*rr.Hdr.copyHeader(), rr.Ns, rr.Mbox, rr.Serial, rr.Refresh, rr.Retry, rr.Expire, rr.Minttl}

@@ -54,8 +54,8 @@ type Droplet struct {
 	Networks    *Networks `json:"networks,omitempty"`
 	Created     string    `json:"created_at,omitempty"`
 	Kernel      *Kernel   `json:"kernel,omitempty"`
-	Tags        []string  `json:"tags,omitempty"`
-	VolumeIDs   []string  `json:"volume_ids"`
+	Tags        []string  `json:"tags,ommitempty"`
+	VolumeIDs   []string  `json:"volumes"`
 }
 
 // PublicIPv4 returns the public IPv4 address for the Droplet.
@@ -131,7 +131,7 @@ type kernelsRoot struct {
 	Links   *Links   `json:"links"`
 }
 
-type dropletSnapshotsRoot struct {
+type snapshotsRoot struct {
 	Snapshots []Image `json:"snapshots,omitempty"`
 	Links     *Links  `json:"links"`
 }
@@ -206,7 +206,6 @@ type DropletCreateRequest struct {
 	PrivateNetworking bool                  `json:"private_networking"`
 	UserData          string                `json:"user_data,omitempty"`
 	Volumes           []DropletCreateVolume `json:"volumes,omitempty"`
-	Tags              []string              `json:"tags"`
 }
 
 // DropletMultiCreateRequest is a request to create multiple droplets.
@@ -220,7 +219,6 @@ type DropletMultiCreateRequest struct {
 	IPv6              bool                  `json:"ipv6"`
 	PrivateNetworking bool                  `json:"private_networking"`
 	UserData          string                `json:"user_data,omitempty"`
-	Tags              []string              `json:"tags"`
 }
 
 func (d DropletCreateRequest) String() string {
@@ -509,7 +507,7 @@ func (s *DropletsServiceOp) Snapshots(dropletID int, opt *ListOptions) ([]Image,
 		return nil, nil, err
 	}
 
-	root := new(dropletSnapshotsRoot)
+	root := new(snapshotsRoot)
 	resp, err := s.client.Do(req, root)
 	if err != nil {
 		return nil, resp, err

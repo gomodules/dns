@@ -1,11 +1,11 @@
 package: github.com/appscode/go-dns
 import:
 - package: github.com/Azure/azure-sdk-for-go
-  version: v7.0.1-beta
+  version: 8316b9060f9c2443ba0864663245695d570a7fa2
   subpackages:
   - arm/dns
 - package: github.com/Azure/go-autorest
-  version: v7.2.2
+  version: 2492d97b402e00797833c03ac5fa1c572c7bb29a
   subpackages:
   - autorest/azure
   - autorest/to

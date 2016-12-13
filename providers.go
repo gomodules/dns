@@ -4,6 +4,7 @@ package dns
 import (
 	"fmt"
 
+	"github.com/appscode/go-dns/azure"
 	"github.com/appscode/go-dns/cloudflare"
 	"github.com/appscode/go-dns/digitalocean"
 	"github.com/appscode/go-dns/googlecloud"
@@ -16,8 +17,8 @@ func NewDNSChallengeProviderByName(name string) (dp.Provider, error) {
 	var err error
 	var provider dp.Provider
 	switch name {
-	//case "azure":
-	//	provider, err = azure.NewDNSProvider()
+	case "azure":
+		provider, err = azure.NewDNSProvider()
 	//case "auroradns":
 	//	provider, err = auroradns.NewDNSProvider()
 	case "cloudflare":

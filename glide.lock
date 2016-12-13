@@ -1,8 +1,8 @@
-hash: 761a17d709d9d67f5a0a7894f8a7159df77cb86888aeed1293ce8639bb4727c6
-updated: 2016-12-13T22:35:53.433836749-08:00
+hash: 282851651a5cbc557406fb3f9989c765584089e23a0baaa4b44b91354ac22b2b
+updated: 2016-12-14T01:06:55.400270856-08:00
 imports:
 - name: cloud.google.com/go
-  version: 3b1ae45394a234c385be014e9a488f2bb6eef821
+  version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
   subpackages:
   - compute/metadata
   - internal
@@ -35,25 +35,24 @@ imports:
   - service/route53
   - service/sts
 - name: github.com/Azure/azure-sdk-for-go
-  version: 0984e0641ae43b89283223034574d6465be93bf4
+  version: 8316b9060f9c2443ba0864663245695d570a7fa2
   subpackages:
   - arm/dns
 - name: github.com/Azure/go-autorest
-  version: 8a25372bbfec739b8719a9e3987400d15ef9e179
+  version: 2492d97b402e00797833c03ac5fa1c572c7bb29a
   subpackages:
   - autorest
   - autorest/azure
   - autorest/date
   - autorest/to
-  - autorest/validation
 - name: github.com/cloudflare/cloudflare-go
   version: ba610b87e64f5e99e8ddd614e50669c66c2ec9b5
 - name: github.com/decker502/dnspod-go
   version: f6b1d56f1c048bd94d7e42ac36efb4d57b069b6f
 - name: github.com/dgrijalva/jwt-go
-  version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
+  version: 9ed569b5d1ac936e6494082958d63a6aa4fff99a
 - name: github.com/digitalocean/godo
-  version: 758b5be38ee8c630b0db89b00b7b87f064839099
+  version: 2ff8a02a86cd6918b384a5000ceebe886844fbce
 - name: github.com/edeckers/auroradnsclient
   version: 8b777c170cfd377aa16bb4368f093017dddef3f9
   subpackages:
@@ -63,7 +62,7 @@ imports:
   - tokens
   - zones
 - name: github.com/go-ini/ini
-  version: 2ba15ac2dc9cdf88c110ec2dc0ced7fa45f5678c
+  version: 6e4869b434bd001f6983749881c7ead3545887d8
 - name: github.com/golang/protobuf
   version: 888eb0692c857ec880338addf316bd662d5e630e
   subpackages:
@@ -83,7 +82,7 @@ imports:
 - name: github.com/kelseyhightower/envconfig
   version: 5c008110b20b657eb7e005b83d0a5f6aa6bb5f4b
 - name: github.com/miekg/dns
-  version: 4744e915eb51a9defb5fb13c24ce2c8408d2fd98
+  version: db96a2b759cdef4f11a34506a42eb8d1290c598e
 - name: github.com/ovh/go-ovh
   version: 99a1e00db4397517d87ab82c92b9d8cb60e5940b
   subpackages:
@@ -115,13 +114,13 @@ imports:
   subpackages:
   - ocsp
 - name: golang.org/x/net
-  version: e90d6d0afc4c315a0d87a568ae68577cc15149a0
+  version: f4b625ec9b21d620bb5ce57f2dfc3e08ca97fce6
   subpackages:
   - context
   - context/ctxhttp
   - publicsuffix
 - name: golang.org/x/oauth2
-  version: 3c3a985cb79f52a3190fbc056984415ca6763d01
+  version: d5040cddfc0da40b408c9a1da4728662435176a9
   subpackages:
   - google
   - internal
@@ -139,7 +138,7 @@ imports:
   - googleapi
   - googleapi/internal/uritemplates
 - name: google.golang.org/appengine
-  version: 4f7eeb5305a4ba1966344836ba4af9996b7b4e05
+  version: 150dc57a1b433e64154302bdc40b6bb8aefa313a
   subpackages:
   - internal
   - internal/app_identity

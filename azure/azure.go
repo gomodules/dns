@@ -5,52 +5,54 @@ package azure
 
 import (
 	"fmt"
-	"os"
+	"log"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/dns"
-
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
+	dp "github.com/appscode/go-dns/provider"
+	"github.com/kelseyhightower/envconfig"
 	"github.com/xenolf/lego/acme"
-	"strings"
 )
 
 // DNSProvider is an implementation of the acme.ChallengeProvider interface
 type DNSProvider struct {
-	clientId       string
-	clientSecret   string
-	subscriptionId string
-	tenantId       string
-	resourceGroup  string
+	opt Options
+}
+
+var _ dp.Provider = &DNSProvider{}
+
+type Options struct {
+	TenantId       string `json:"tenant_id" envconfig:"AZURE_TENANT_ID"`
+	SubscriptionId string `json:"subscription_id" envconfig:"AZURE_SUBSCRIPTION_ID"`
+	ClientId       string `json:"client_id" envconfig:"AZURE_CLIENT_ID"`
+	ClientSecret   string `json:"client_secret" envconfig:"AZURE_CLIENT_SECRET"`
+	ResourceGroup  string `json:"resource_group" envconfig:"AZURE_RESOURCE_GROUP"`
 }
 
 // NewDNSProvider returns a DNSProvider instance configured for azure.
 // Credentials must be passed in the environment variables: AZURE_CLIENT_ID,
 // AZURE_CLIENT_SECRET, AZURE_SUBSCRIPTION_ID, AZURE_TENANT_ID
 func NewDNSProvider() (*DNSProvider, error) {
-	clientId := os.Getenv("AZURE_CLIENT_ID")
-	clientSecret := os.Getenv("AZURE_CLIENT_SECRET")
-	subscriptionId := os.Getenv("AZURE_SUBSCRIPTION_ID")
-	tenantId := os.Getenv("AZURE_TENANT_ID")
-	resourceGroup := os.Getenv("AZURE_RESOURCE_GROUP")
-	return NewDNSProviderCredentials(clientId, clientSecret, subscriptionId, tenantId, resourceGroup)
+	var opt Options
+	if err := envconfig.Process("", &opt); err != nil {
+		return nil, err
+	}
+	return NewDNSProviderCredentials(opt)
 }
 
 // NewDNSProviderCredentials uses the supplied credentials to return a
 // DNSProvider instance configured for azure.
-func NewDNSProviderCredentials(clientId, clientSecret, subscriptionId, tenantId, resourceGroup string) (*DNSProvider, error) {
-	if clientId == "" || clientSecret == "" || subscriptionId == "" || tenantId == "" || resourceGroup == "" {
+func NewDNSProviderCredentials(opt Options) (*DNSProvider, error) {
+	if opt.ClientId == "" || opt.ClientSecret == "" || opt.SubscriptionId == "" || opt.TenantId == "" || opt.ResourceGroup == "" {
 		return nil, fmt.Errorf("Azure configuration missing")
 	}
 
-	return &DNSProvider{
-		clientId:       clientId,
-		clientSecret:   clientSecret,
-		subscriptionId: subscriptionId,
-		tenantId:       tenantId,
-		resourceGroup:  resourceGroup,
-	}, nil
+	return &DNSProvider{opt: opt}, nil
 }
 
 // Timeout returns the timeout and interval to use when checking for DNS
@@ -59,56 +61,72 @@ func (c *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return 120 * time.Second, 2 * time.Second
 }
 
-// Present creates a TXT record to fulfil the dns-01 challenge
-func (c *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value, _ := acme.DNS01Record(domain, keyAuth)
+func (c *DNSProvider) EnsureARecord(domain string, ip string) error {
+	fqdn := acme.ToFqdn(domain)
 	zone, err := c.getHostedZoneID(fqdn)
 	if err != nil {
 		return err
 	}
 
-	rsc := dns.NewRecordSetsClient(c.subscriptionId)
+	rsc := dns.NewRecordSetsClient(c.opt.SubscriptionId)
 	rsc.Authorizer, err = c.newServicePrincipalTokenFromCredentials(azure.PublicCloud.ResourceManagerEndpoint)
 	relative := toRelativeRecord(fqdn, acme.ToFqdn(zone))
-	rec := dns.RecordSet{
-		Name: &relative,
-		RecordSetProperties: &dns.RecordSetProperties{
-			TTL:        to.Int64Ptr(60),
-			TXTRecords: &[]dns.TxtRecord{dns.TxtRecord{Value: &[]string{value}}},
-		},
-	}
-	_, err = rsc.CreateOrUpdate(c.resourceGroup, zone, relative, dns.TXT, rec, "", "")
-
+	rs, err := rsc.Get(c.opt.ResourceGroup, zone, relative, "A")
+	found, err := c.checkResourceExistsFromError(err)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	records := make([]dns.ARecord, 0)
+	if found {
+		records = *rs.Properties.ARecords
+		for _, record := range records {
+			if *record.Ipv4Address == ip {
+				log.Println("DNS is already configured. No DNS related change is necessary.")
+				return nil
+			}
+		}
+	}
+	records = append(records, dns.ARecord{
+		Ipv4Address: &ip,
+	})
+
+	rec := dns.RecordSet{
+		Name: &relative,
+		Properties: &dns.RecordSetProperties{
+			TTL:      to.Int64Ptr(300),
+			ARecords: &records,
+		},
+	}
+	_, err = rsc.CreateOrUpdate(c.opt.ResourceGroup, zone, relative, dns.TXT, rec, "", "")
+	return err
+}
+
+func (c *DNSProvider) DeleteARecords(domain string) error {
+	fqdn := acme.ToFqdn(domain)
+	zone, err := c.getHostedZoneID(fqdn)
+	if err != nil {
+		return err
+	}
+
+	rsc := dns.NewRecordSetsClient(c.opt.SubscriptionId)
+	rsc.Authorizer, err = c.newServicePrincipalTokenFromCredentials(azure.PublicCloud.ResourceManagerEndpoint)
+	relative := toRelativeRecord(fqdn, acme.ToFqdn(zone))
+	_, err = rsc.Delete(c.opt.ResourceGroup, zone, relative, "A", "", "")
+
+	//resp, err := rsc.ListByType(c.resourceGroup, zone, "A", nil)
+	//if err != nil {
+	//	return err
+	//}
+	//for _, record := range (*resp.Value) {
+	//	rsc.Delete(c.resourceGroup, zone, record.Name, "A", "")
+	//}
+	return err
 }
 
 // Returns the relative record to the domain
 func toRelativeRecord(domain, zone string) string {
 	return acme.UnFqdn(strings.TrimSuffix(domain, zone))
-}
-
-// CleanUp removes the TXT record matching the specified parameters
-func (c *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _, _ := acme.DNS01Record(domain, keyAuth)
-
-	zone, err := c.getHostedZoneID(fqdn)
-	if err != nil {
-		return err
-	}
-
-	relative := toRelativeRecord(fqdn, acme.ToFqdn(zone))
-	rsc := dns.NewRecordSetsClient(c.subscriptionId)
-	rsc.Authorizer, err = c.newServicePrincipalTokenFromCredentials(azure.PublicCloud.ResourceManagerEndpoint)
-	_, err = rsc.Delete(c.resourceGroup, zone, relative, dns.TXT, "")
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // Checks that azure has a zone for this domain name.
@@ -119,9 +137,9 @@ func (c *DNSProvider) getHostedZoneID(fqdn string) (string, error) {
 	}
 
 	// Now we want to to Azure and get the zone.
-	dc := dns.NewZonesClient(c.subscriptionId)
+	dc := dns.NewZonesClient(c.opt.SubscriptionId)
 	dc.Authorizer, err = c.newServicePrincipalTokenFromCredentials(azure.PublicCloud.ResourceManagerEndpoint)
-	zone, err := dc.Get(c.resourceGroup, acme.UnFqdn(authZone))
+	zone, err := dc.Get(c.opt.ResourceGroup, acme.UnFqdn(authZone))
 
 	if err != nil {
 		return "", err
@@ -134,9 +152,24 @@ func (c *DNSProvider) getHostedZoneID(fqdn string) (string, error) {
 // NewServicePrincipalTokenFromCredentials creates a new ServicePrincipalToken using values of the
 // passed credentials map.
 func (c *DNSProvider) newServicePrincipalTokenFromCredentials(scope string) (*azure.ServicePrincipalToken, error) {
-	oauthConfig, err := azure.PublicCloud.OAuthConfigForTenant(c.tenantId)
+	oauthConfig, err := azure.PublicCloud.OAuthConfigForTenant(c.opt.TenantId)
 	if err != nil {
 		panic(err)
 	}
-	return azure.NewServicePrincipalToken(*oauthConfig, c.clientId, c.clientSecret, scope)
+	return azure.NewServicePrincipalToken(*oauthConfig, c.opt.ClientId, c.opt.ClientSecret, scope)
+}
+
+// checkExistsFromError inspects an error and returns a true if err is nil,
+// false if error is an autorest.Error with StatusCode=404 and will return the
+// error back if error is another status code or another type of error.
+// ref: https://github.com/kubernetes/kubernetes/blob/54195d590f03a544d78b4449b2fbafaa258fd6df/pkg/cloudprovider/providers/azure/azure_wrap.go#L28
+func (c *DNSProvider) checkResourceExistsFromError(err error) (bool, error) {
+	if err == nil {
+		return true, nil
+	}
+	v, ok := err.(autorest.DetailedError)
+	if ok && v.StatusCode == http.StatusNotFound {
+		return false, nil
+	}
+	return false, v
 }

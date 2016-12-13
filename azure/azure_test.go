@@ -16,6 +16,7 @@ var (
 	azureTenantID       string
 	azureResourceGroup  string
 	azureDomain         string
+	azureIP             string
 )
 
 func init() {
@@ -25,6 +26,7 @@ func init() {
 	azureTenantID = os.Getenv("AZURE_TENANT_ID")
 	azureResourceGroup = os.Getenv("AZURE_RESOURCE_GROUP")
 	azureDomain = os.Getenv("AZURE_DOMAIN")
+	azureIP = os.Getenv("AZURE_IP")
 	if len(azureClientID) > 0 && len(azureClientSecret) > 0 {
 		azureLiveTest = true
 	}
@@ -40,7 +42,13 @@ func TestNewDNSProviderValid(t *testing.T) {
 		t.Skip("skipping live test (requires credentials)")
 	}
 	os.Setenv("AZURE_CLIENT_ID", "")
-	_, err := NewDNSProviderCredentials(azureClientID, azureClientSecret, azureSubscriptionID, azureTenantID, azureResourceGroup)
+	_, err := NewDNSProviderCredentials(Options{
+		TenantId:       azureTenantID,
+		SubscriptionId: azureSubscriptionID,
+		ClientId:       azureClientID,
+		ClientSecret:   azureClientSecret,
+		ResourceGroup:  azureResourceGroup,
+	})
 	assert.NoError(t, err)
 	restoreAzureEnv()
 }
@@ -62,28 +70,40 @@ func TestNewDNSProviderMissingCredErr(t *testing.T) {
 	restoreAzureEnv()
 }
 
-func TestLiveAzurePresent(t *testing.T) {
+func TestLiveAzureEnsureARecord(t *testing.T) {
 	if !azureLiveTest {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProviderCredentials(azureClientID, azureClientSecret, azureSubscriptionID, azureTenantID, azureResourceGroup)
+	provider, err := NewDNSProviderCredentials(Options{
+		TenantId:       azureTenantID,
+		SubscriptionId: azureSubscriptionID,
+		ClientId:       azureClientID,
+		ClientSecret:   azureClientSecret,
+		ResourceGroup:  azureResourceGroup,
+	})
 	assert.NoError(t, err)
 
-	err = provider.Present(azureDomain, "", "123d==")
+	err = provider.EnsureARecord(azureDomain, azureIP)
 	assert.NoError(t, err)
 }
 
-func TestLiveAzureCleanUp(t *testing.T) {
+func TestLiveAzureDeleteARecords(t *testing.T) {
 	if !azureLiveTest {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProviderCredentials(azureClientID, azureClientSecret, azureSubscriptionID, azureTenantID, azureResourceGroup)
+	provider, err := NewDNSProviderCredentials(Options{
+		TenantId:       azureTenantID,
+		SubscriptionId: azureSubscriptionID,
+		ClientId:       azureClientID,
+		ClientSecret:   azureClientSecret,
+		ResourceGroup:  azureResourceGroup,
+	})
 	time.Sleep(time.Second * 1)
 
 	assert.NoError(t, err)
 
-	err = provider.CleanUp(azureDomain, "", "123d==")
+	err = provider.DeleteARecords(azureDomain)
 	assert.NoError(t, err)
 }
