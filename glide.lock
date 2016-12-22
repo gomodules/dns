@@ -1,11 +1,15 @@
 hash: 282851651a5cbc557406fb3f9989c765584089e23a0baaa4b44b91354ac22b2b
-updated: 2016-12-14T01:06:55.400270856-08:00
+updated: 2016-12-22T13:24:41.406622805-08:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
   subpackages:
   - compute/metadata
   - internal
+- name: github.com/appscode/go
+  version: 4c6c214ab7e0b0e52c5e7087f8f7d861b00a1fe2
+  subpackages:
+  - strings
 - name: github.com/aws/aws-sdk-go
   version: 1355b456f6ba4a8453249e0dc7743f16ccac362d
   subpackages:
@@ -64,7 +68,7 @@ imports:
 - name: github.com/go-ini/ini
   version: 6e4869b434bd001f6983749881c7ead3545887d8
 - name: github.com/golang/protobuf
-  version: 888eb0692c857ec880338addf316bd662d5e630e
+  version: 8ee79997227bf9b34611aee7946ae64735e6fd93
   subpackages:
   - proto
 - name: github.com/google/go-querystring
@@ -80,15 +84,15 @@ imports:
 - name: github.com/juju/ratelimit
   version: 77ed1c8a01217656d2080ad51981f6e99adaa177
 - name: github.com/kelseyhightower/envconfig
-  version: 5c008110b20b657eb7e005b83d0a5f6aa6bb5f4b
+  version: 9aca109c9aec4633fced9717c4a09ecab3d33111
 - name: github.com/miekg/dns
-  version: db96a2b759cdef4f11a34506a42eb8d1290c598e
+  version: 5d001d020961ae1c184f9f8152fdc73810481677
 - name: github.com/ovh/go-ovh
   version: 99a1e00db4397517d87ab82c92b9d8cb60e5940b
   subpackages:
   - ovh
 - name: github.com/pkg/errors
-  version: 248dadf4e9068a0b3e79f02ed0a610d935de5302
+  version: a22138067af1c4942683050411a841ade67fe1eb
 - name: github.com/pyr/egoscale
   version: ab4b0d7ff424c462da486aef27f354cdeb29a319
   subpackages:
@@ -131,7 +135,7 @@ imports:
   subpackages:
   - unix
 - name: google.golang.org/api
-  version: 80a862db7ac7755c3d6584e3791d1916363acbfc
+  version: 55146ba61254fdb1c26d65ff3c04bc1611ad73fb
   subpackages:
   - dns/v1
   - gensupport

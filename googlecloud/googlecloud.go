@@ -10,7 +10,7 @@ import (
 	"time"
 
 	dp "github.com/appscode/go-dns/provider"
-	"github.com/appscode/go-dns/util"
+	"github.com/appscode/go/strings"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/xenolf/lego/acme"
 	"golang.org/x/net/context"
@@ -107,7 +107,7 @@ func (c *DNSProvider) EnsureARecord(domain string, ip string) error {
 		Additions: make([]*dns.ResourceRecordSet, 0),
 		Deletions: make([]*dns.ResourceRecordSet, 0),
 	}
-	if len(r1.Rrsets) == 0 || !util.Contains(r1.Rrsets[0].Rrdatas, ip) {
+	if len(r1.Rrsets) == 0 || !strings.Contains(r1.Rrsets[0].Rrdatas, ip) {
 		ips := []string{ip}
 		if len(r1.Rrsets) > 0 {
 			ips = append(ips, r1.Rrsets[0].Rrdatas...)
@@ -121,7 +121,7 @@ func (c *DNSProvider) EnsureARecord(domain string, ip string) error {
 			Rrdatas: ips,
 		})
 	}
-	if len(r1.Rrsets) == 1 && !util.Contains(r1.Rrsets[0].Rrdatas, ip) {
+	if len(r1.Rrsets) == 1 && !strings.Contains(r1.Rrsets[0].Rrdatas, ip) {
 		log.Println("Deleting A record ", r1.Rrsets[0].Rrdatas)
 		changes.Deletions = append(changes.Deletions, &dns.ResourceRecordSet{
 			Name:    acme.ToFqdn(domain),
