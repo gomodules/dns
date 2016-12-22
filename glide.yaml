@@ -5,7 +5,7 @@ import:
 - package: github.com/Azure/go-autorest
   version: 2492d97b402e00797833c03ac5fa1c572c7bb29a
 - package: github.com/JamesClonk/vultr
-  version: v1.11
+  version: 1.12.0
 - package: github.com/aws/aws-sdk-go
   version: v1.6.2
 - package: github.com/cloudflare/cloudflare-go
