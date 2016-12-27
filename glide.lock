@@ -1,5 +1,5 @@
 hash: 5d9a58e5602676bcbf350abcf05d37956d818e0b19127591dcfe8c230d30bb94
-updated: 2016-12-27T06:47:16.047378827-08:00
+updated: 2016-12-27T14:39:18.008843497-08:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -110,7 +110,7 @@ imports:
   subpackages:
   - dnsimple
 - name: github.com/xenolf/lego
-  version: e5e71ef12cd6b5babe7bff55760e012d81baac12
+  version: c0414d1b0722b45e76f7b7038959d7511574a358
   repo: https://github.com/appscode/lego.git
   vcs: git
   subpackages:
