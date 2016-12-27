@@ -20,7 +20,8 @@ import:
 - package: github.com/timewasted/linode
 - package: github.com/weppos/dnsimple-go
 - package: github.com/xenolf/lego
-  version: v0.3.1
+  repo: https://github.com/appscode/lego.git
+  vcs: git
 - package: golang.org/x/net
 - package: golang.org/x/oauth2
 - package: google.golang.org/api

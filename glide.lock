@@ -1,5 +1,5 @@
-hash: c8416d0d7029e3589ec02a18b6ce45bd9192797656c92d02b4323e1a587e29ce
-updated: 2016-12-25T14:15:05.96044593-08:00
+hash: 5d9a58e5602676bcbf350abcf05d37956d818e0b19127591dcfe8c230d30bb94
+updated: 2016-12-27T06:47:16.047378827-08:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -88,7 +88,7 @@ imports:
 - name: github.com/miekg/dns
   version: 5d001d020961ae1c184f9f8152fdc73810481677
 - name: github.com/ovh/go-ovh
-  version: 99a1e00db4397517d87ab82c92b9d8cb60e5940b
+  version: a8a4c0bc40e56322142649bda7b2b4bb15145b6e
   subpackages:
   - ovh
 - name: github.com/pkg/errors
@@ -110,7 +110,9 @@ imports:
   subpackages:
   - dnsimple
 - name: github.com/xenolf/lego
-  version: 96a24777ffb3c6a25f6bb0b3a7997969c1fcde4b
+  version: e5e71ef12cd6b5babe7bff55760e012d81baac12
+  repo: https://github.com/appscode/lego.git
+  vcs: git
   subpackages:
   - acme
 - name: golang.org/x/crypto

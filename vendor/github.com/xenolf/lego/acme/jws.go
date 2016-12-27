@@ -8,6 +8,7 @@ import (
 	"crypto/rsa"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"gopkg.in/square/go-jose.v1"
 )
@@ -16,6 +17,7 @@ type jws struct {
 	directoryURL string
 	privKey      crypto.PrivateKey
 	nonces       []string
+	sync.Mutex
 }
 
 func keyAsJWK(key interface{}) *jose.JsonWebKey {
@@ -42,6 +44,8 @@ func (j *jws) post(url string, content []byte) (*http.Response, error) {
 		return nil, err
 	}
 
+	j.Lock()
+	defer j.Unlock()
 	j.getNonceFromResponse(resp)
 
 	return resp, err
@@ -94,6 +98,8 @@ func (j *jws) getNonce() error {
 }
 
 func (j *jws) Nonce() (string, error) {
+	j.Lock()
+	defer j.Unlock()
 	nonce := ""
 	if len(j.nonces) == 0 {
 		err := j.getNonce()
