@@ -1,5 +1,5 @@
-hash: 5d9a58e5602676bcbf350abcf05d37956d818e0b19127591dcfe8c230d30bb94
-updated: 2016-12-27T14:39:18.008843497-08:00
+hash: 37d66c409e81363e923d858bc94b7570c3785988381821258fc7c0eff7d3fe40
+updated: 2017-01-14T13:14:59.735562858-08:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -7,7 +7,7 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/appscode/go
-  version: 7995bcb0419b6ed977ca66d4482c3a625847270e
+  version: c69e23742f9631e337197faa35c6d7ee1a93ee6c
   subpackages:
   - strings
 - name: github.com/aws/aws-sdk-go
@@ -39,16 +39,18 @@ imports:
   - service/route53
   - service/sts
 - name: github.com/Azure/azure-sdk-for-go
-  version: 8316b9060f9c2443ba0864663245695d570a7fa2
+  version: 0984e0641ae43b89283223034574d6465be93bf4
+  vcs: git
   subpackages:
   - arm/dns
 - name: github.com/Azure/go-autorest
-  version: 2492d97b402e00797833c03ac5fa1c572c7bb29a
+  version: e0c77ecbe74311e03f2a629834d2110f031f1453
   subpackages:
   - autorest
   - autorest/azure
   - autorest/date
   - autorest/to
+  - autorest/validation
 - name: github.com/cloudflare/cloudflare-go
   version: ba610b87e64f5e99e8ddd614e50669c66c2ec9b5
 - name: github.com/decker502/dnspod-go
@@ -84,17 +86,17 @@ imports:
 - name: github.com/juju/ratelimit
   version: 77ed1c8a01217656d2080ad51981f6e99adaa177
 - name: github.com/kelseyhightower/envconfig
-  version: 5c008110b20b657eb7e005b83d0a5f6aa6bb5f4b
+  version: 9aca109c9aec4633fced9717c4a09ecab3d33111
 - name: github.com/miekg/dns
   version: 5d001d020961ae1c184f9f8152fdc73810481677
 - name: github.com/ovh/go-ovh
-  version: a8a4c0bc40e56322142649bda7b2b4bb15145b6e
+  version: d2207178e10e4527e8f222fd8707982df8c3af17
   subpackages:
   - ovh
 - name: github.com/pkg/errors
   version: a22138067af1c4942683050411a841ade67fe1eb
 - name: github.com/pyr/egoscale
-  version: ab4b0d7ff424c462da486aef27f354cdeb29a319
+  version: 9ee3ef584c468e35d3aea09fb96beda7cc139843
   subpackages:
   - src/egoscale
 - name: github.com/Sirupsen/logrus
@@ -110,7 +112,7 @@ imports:
   subpackages:
   - dnsimple
 - name: github.com/xenolf/lego
-  version: c0414d1b0722b45e76f7b7038959d7511574a358
+  version: efdf264cb25e03b7adab3401648e6daa7fbe8ebc
   repo: https://github.com/appscode/lego.git
   vcs: git
   subpackages:
