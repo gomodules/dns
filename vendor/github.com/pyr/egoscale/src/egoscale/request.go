@@ -30,7 +30,6 @@ func rawValue(b json.RawMessage) (json.RawMessage, error) {
 	for _, v := range m {
 		return v, nil
 	}
-	//return nil, fmt.Errorf("Unable to extract raw value from:\n\n%s\n\n", string(b))
 	return nil, nil
 }
 
@@ -60,7 +59,6 @@ func (exo *Client) ParseResponse(resp *http.Response) (json.RawMessage, error) {
 	}
 
 	if resp.StatusCode >= 400 {
-		fmt.Printf("ERROR: %s\n", b)
 		var e Error
 		if err := json.Unmarshal(b, &e); err != nil {
 			return nil, err

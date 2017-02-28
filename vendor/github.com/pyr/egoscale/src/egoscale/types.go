@@ -403,7 +403,10 @@ type VirtualMachine struct {
 		Netmask      string   `json:"netmask,omitempty"`
 		Networkid    string   `json:"networkid,omitempty"`
 		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
+		Secondaryip  []struct {
+			Id		string `json:"id,omitempty"`
+			IpAddress	string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
 		Traffictype  string   `json:"traffictype,omitempty"`
 		Type         string   `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
@@ -415,6 +418,13 @@ type VirtualMachine struct {
 	Publicipid          string `json:"publicipid,omitempty"`
 	Rootdeviceid        int64  `json:"rootdeviceid,omitempty"`
 	Rootdevicetype      string `json:"rootdevicetype,omitempty"`
+	SecurityGroups      []struct {
+		Account     string `json:"account,omitempty"`
+		Description string `json:"description,omitempty"`
+		Id          string `json:"id,omitempty"`
+		Name        string `json:"name,omitemtpy"`
+		Tags        []string `json:"tags,omitempty"`
+	} `json:"securitygroup,omitempty"`
 	Serviceofferingid   string `json:"serviceofferingid,omitempty"`
 	Serviceofferingname string `json:"serviceofferingname,omitempty"`
 	Servicestate        string `json:"servicestate,omitempty"`
@@ -448,6 +458,18 @@ type CreateSSHKeyPairWrappedResponse struct {
 
 type CreateSSHKeyPairResponse struct {
 	Privatekey string `json:"privatekey,omitempty"`
+}
+
+type RemoveIpFromNicResponse struct {
+	JobID string `json:"jobid,omitempty"`
+}
+
+type AddIpToNicResponse struct {
+	Id string `json:"id"`
+	IpAddress string `json:"ipaddress"`
+	NetworkId string `json:"networkid"`
+	NicId string `json:"nicid"`
+	VmId string `json:"virtualmachineid"`
 }
 
 type CreateAffinityGroupResponse struct {

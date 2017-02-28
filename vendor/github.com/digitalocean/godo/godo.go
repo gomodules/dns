@@ -2,6 +2,7 @@ package godo
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -55,9 +56,12 @@ type Client struct {
 	Sizes             SizesService
 	FloatingIPs       FloatingIPsService
 	FloatingIPActions FloatingIPActionsService
+	Snapshots         SnapshotsService
 	Storage           StorageService
 	StorageActions    StorageActionsService
 	Tags              TagsService
+	LoadBalancers     LoadBalancersService
+	Certificates	  CertificatesService
 
 	// Optional function called after every successful request made to the DO APIs
 	onRequestCompleted RequestCompletionCallback
@@ -155,16 +159,19 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Domains = &DomainsServiceOp{client: c}
 	c.Droplets = &DropletsServiceOp{client: c}
 	c.DropletActions = &DropletActionsServiceOp{client: c}
+	c.FloatingIPs = &FloatingIPsServiceOp{client: c}
+	c.FloatingIPActions = &FloatingIPActionsServiceOp{client: c}
 	c.Images = &ImagesServiceOp{client: c}
 	c.ImageActions = &ImageActionsServiceOp{client: c}
 	c.Keys = &KeysServiceOp{client: c}
 	c.Regions = &RegionsServiceOp{client: c}
+	c.Snapshots = &SnapshotsServiceOp{client: c}
 	c.Sizes = &SizesServiceOp{client: c}
-	c.FloatingIPs = &FloatingIPsServiceOp{client: c}
-	c.FloatingIPActions = &FloatingIPActionsServiceOp{client: c}
 	c.Storage = &StorageServiceOp{client: c}
 	c.StorageActions = &StorageActionsServiceOp{client: c}
 	c.Tags = &TagsServiceOp{client: c}
+	c.LoadBalancers = &LoadBalancersServiceOp{client: c}
+	c.Certificates = &CertificatesServiceOp{client: c}
 
 	return c
 }
@@ -208,7 +215,7 @@ func SetUserAgent(ua string) ClientOpt {
 // NewRequest creates an API request. A relative URL can be provided in urlStr, which will be resolved to the
 // BaseURL of the Client. Relative URLS should always be specified without a preceding slash. If specified, the
 // value pointed to by body is JSON encoded and included in as the request body.
-func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
+func (c *Client) NewRequest(ctx context.Context, method, urlStr string, body interface{}) (*http.Request, error) {
 	rel, err := url.Parse(urlStr)
 	if err != nil {
 		return nil, err
@@ -218,7 +225,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 
 	buf := new(bytes.Buffer)
 	if body != nil {
-		err := json.NewEncoder(buf).Encode(body)
+		err = json.NewEncoder(buf).Encode(body)
 		if err != nil {
 			return nil, err
 		}
@@ -229,6 +236,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 		return nil, err
 	}
 
+	req = req.WithContext(ctx)
 	req.Header.Add("Content-Type", mediaType)
 	req.Header.Add("Accept", mediaType)
 	req.Header.Add("User-Agent", c.UserAgent)
@@ -310,12 +318,12 @@ func (c *Client) Do(req *http.Request, v interface{}) (*Response, error) {
 
 	if v != nil {
 		if w, ok := v.(io.Writer); ok {
-			_, err := io.Copy(w, resp.Body)
+			_, err = io.Copy(w, resp.Body)
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			err := json.NewDecoder(resp.Body).Decode(v)
+			err = json.NewDecoder(resp.Body).Decode(v)
 			if err != nil {
 				return nil, err
 			}

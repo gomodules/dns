@@ -3,6 +3,7 @@
 package digitalocean
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -46,7 +47,7 @@ func NewDNSProviderCredentials(opt Options) (*DNSProvider, error) {
 		return nil, errors.New("DigitalOcean credentials missing")
 	}
 
-	oauthClient := oauth2.NewClient(oauth2.NoContext, oauth2.StaticTokenSource(&oauth2.Token{
+	oauthClient := oauth2.NewClient(context.TODO(), oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: opt.AuthToken,
 	}))
 	return &DNSProvider{
@@ -62,7 +63,7 @@ func (c *DNSProvider) EnsureARecord(domain string, ip string) error {
 	authZone = acme.UnFqdn(authZone)
 	relative := toRelativeRecord(domain, authZone)
 
-	records, _, err := c.client.Domains.Records(authZone, &godo.ListOptions{
+	records, _, err := c.client.Domains.Records(context.TODO(), authZone, &godo.ListOptions{
 		PerPage: 100,
 	})
 	if err != nil {
@@ -74,7 +75,7 @@ func (c *DNSProvider) EnsureARecord(domain string, ip string) error {
 			return nil
 		}
 	}
-	_, _, err = c.client.Domains.CreateRecord(authZone, &godo.DomainRecordEditRequest{
+	_, _, err = c.client.Domains.CreateRecord(context.TODO(), authZone, &godo.DomainRecordEditRequest{
 		Type: "A",
 		Name: relative,
 		Data: ip,
@@ -90,7 +91,7 @@ func (c *DNSProvider) DeleteARecords(domain string) error {
 	authZone = acme.UnFqdn(authZone)
 	relative := toRelativeRecord(domain, authZone)
 
-	records, _, err := c.client.Domains.Records(authZone, &godo.ListOptions{
+	records, _, err := c.client.Domains.Records(context.TODO(), authZone, &godo.ListOptions{
 		PerPage: 100,
 	})
 	if err != nil {
@@ -98,7 +99,7 @@ func (c *DNSProvider) DeleteARecords(domain string) error {
 	}
 	for _, record := range records {
 		if record.Type == "A" && record.Name == relative {
-			_, err = c.client.Domains.DeleteRecord(authZone, record.ID)
+			_, err = c.client.Domains.DeleteRecord(context.TODO(), authZone, record.ID)
 			if err != nil {
 				return err
 			}

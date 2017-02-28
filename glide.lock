@@ -1,5 +1,5 @@
 hash: 37d66c409e81363e923d858bc94b7570c3785988381821258fc7c0eff7d3fe40
-updated: 2017-01-14T13:14:59.735562858-08:00
+updated: 2017-02-27T23:12:13.086687012-08:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -7,7 +7,7 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/appscode/go
-  version: c69e23742f9631e337197faa35c6d7ee1a93ee6c
+  version: 7ba1c0a441c6c319a501e54db6e93deaff5fe0dd
   subpackages:
   - strings
 - name: github.com/aws/aws-sdk-go
@@ -54,11 +54,11 @@ imports:
 - name: github.com/cloudflare/cloudflare-go
   version: ba610b87e64f5e99e8ddd614e50669c66c2ec9b5
 - name: github.com/decker502/dnspod-go
-  version: f6b1d56f1c048bd94d7e42ac36efb4d57b069b6f
+  version: 68650ee11e182e30773781d391c66a0c80ccf9f2
 - name: github.com/dgrijalva/jwt-go
   version: 9ed569b5d1ac936e6494082958d63a6aa4fff99a
 - name: github.com/digitalocean/godo
-  version: 2ff8a02a86cd6918b384a5000ceebe886844fbce
+  version: 7d7ef61f5659edd106f8092d8d36f2e21309ce4c
 - name: github.com/edeckers/auroradnsclient
   version: 8b777c170cfd377aa16bb4368f093017dddef3f9
   subpackages:
@@ -96,7 +96,7 @@ imports:
 - name: github.com/pkg/errors
   version: a22138067af1c4942683050411a841ade67fe1eb
 - name: github.com/pyr/egoscale
-  version: 9ee3ef584c468e35d3aea09fb96beda7cc139843
+  version: 987e683a7552f34ee586217d1cc8507d52e80ab9
   subpackages:
   - src/egoscale
 - name: github.com/Sirupsen/logrus
@@ -112,7 +112,7 @@ imports:
   subpackages:
   - dnsimple
 - name: github.com/xenolf/lego
-  version: efdf264cb25e03b7adab3401648e6daa7fbe8ebc
+  version: 9daa55c337f252e32554e849cb399ae12c9fa21a
   repo: https://github.com/appscode/lego.git
   vcs: git
   subpackages:
@@ -139,7 +139,7 @@ imports:
   subpackages:
   - unix
 - name: google.golang.org/api
-  version: 55146ba61254fdb1c26d65ff3c04bc1611ad73fb
+  version: 80a862db7ac7755c3d6584e3791d1916363acbfc
   subpackages:
   - dns/v1
   - gensupport
