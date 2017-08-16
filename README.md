@@ -25,5 +25,5 @@ Unified DNS client for GOlang. See here for the documentation of [common provide
 - [ ] pdns
 - [ ] rackspace
 
-##Acknowledgement
+### Acknowledgement
 The initial implementation of this library was forked from https://github.com/xenolf/lego/tree/master/providers/dns
