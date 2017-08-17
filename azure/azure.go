@@ -12,6 +12,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
 	dp "github.com/appscode/go-dns/provider"
@@ -68,8 +69,9 @@ func (c *DNSProvider) EnsureARecord(domain string, ip string) error {
 		return err
 	}
 
+	spt, err := c.newServicePrincipalTokenFromCredentials(azure.PublicCloud.ResourceManagerEndpoint)
 	rsc := dns.NewRecordSetsClient(c.opt.SubscriptionId)
-	rsc.Authorizer, err = c.newServicePrincipalTokenFromCredentials(azure.PublicCloud.ResourceManagerEndpoint)
+	rsc.Authorizer = autorest.NewBearerAuthorizer(spt)
 	relative := toRelativeRecord(fqdn, acme.ToFqdn(zone))
 	rs, err := rsc.Get(c.opt.ResourceGroup, zone, relative, "A")
 	found, err := c.checkResourceExistsFromError(err)
@@ -109,8 +111,9 @@ func (c *DNSProvider) DeleteARecords(domain string) error {
 		return err
 	}
 
+	spt, err := c.newServicePrincipalTokenFromCredentials(azure.PublicCloud.ResourceManagerEndpoint)
 	rsc := dns.NewRecordSetsClient(c.opt.SubscriptionId)
-	rsc.Authorizer, err = c.newServicePrincipalTokenFromCredentials(azure.PublicCloud.ResourceManagerEndpoint)
+	rsc.Authorizer = autorest.NewBearerAuthorizer(spt)
 	relative := toRelativeRecord(fqdn, acme.ToFqdn(zone))
 	_, err = rsc.Delete(c.opt.ResourceGroup, zone, relative, "A", "")
 
@@ -137,8 +140,9 @@ func (c *DNSProvider) getHostedZoneID(fqdn string) (string, error) {
 	}
 
 	// Now we want to to Azure and get the zone.
+	spt, err := c.newServicePrincipalTokenFromCredentials(azure.PublicCloud.ResourceManagerEndpoint)
 	dc := dns.NewZonesClient(c.opt.SubscriptionId)
-	dc.Authorizer, err = c.newServicePrincipalTokenFromCredentials(azure.PublicCloud.ResourceManagerEndpoint)
+	dc.Authorizer = autorest.NewBearerAuthorizer(spt)
 	zone, err := dc.Get(c.opt.ResourceGroup, acme.UnFqdn(authZone))
 
 	if err != nil {
@@ -151,12 +155,12 @@ func (c *DNSProvider) getHostedZoneID(fqdn string) (string, error) {
 
 // NewServicePrincipalTokenFromCredentials creates a new ServicePrincipalToken using values of the
 // passed credentials map.
-func (c *DNSProvider) newServicePrincipalTokenFromCredentials(scope string) (*azure.ServicePrincipalToken, error) {
-	oauthConfig, err := azure.PublicCloud.OAuthConfigForTenant(c.opt.TenantId)
+func (c *DNSProvider) newServicePrincipalTokenFromCredentials(scope string) (*adal.ServicePrincipalToken, error) {
+	oauthConfig, err := adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, c.opt.TenantId)
 	if err != nil {
 		panic(err)
 	}
-	return azure.NewServicePrincipalToken(*oauthConfig, c.opt.ClientId, c.opt.ClientSecret, scope)
+	return adal.NewServicePrincipalToken(*oauthConfig, c.opt.ClientId, c.opt.ClientSecret, scope)
 }
 
 // checkExistsFromError inspects an error and returns a true if err is nil,

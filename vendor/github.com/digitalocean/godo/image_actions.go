@@ -1,8 +1,9 @@
 package godo
 
 import (
-	"context"
 	"fmt"
+
+	"github.com/digitalocean/godo/context"
 )
 
 // ImageActionsService is an interface for interfacing with the image actions
@@ -11,6 +12,7 @@ import (
 type ImageActionsService interface {
 	Get(context.Context, int, int) (*Action, *Response, error)
 	Transfer(context.Context, int, *ActionRequest) (*Action, *Response, error)
+	Convert(context.Context, int) (*Action, *Response, error)
 }
 
 // ImageActionsServiceOp handles communition with the image action related methods of the
@@ -39,7 +41,33 @@ func (i *ImageActionsServiceOp) Transfer(ctx context.Context, imageID int, trans
 	}
 
 	root := new(actionRoot)
-	resp, err := i.client.Do(req, root)
+	resp, err := i.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root.Event, resp, err
+}
+
+// Convert an image to a snapshot
+func (i *ImageActionsServiceOp) Convert(ctx context.Context, imageID int) (*Action, *Response, error) {
+	if imageID < 1 {
+		return nil, nil, NewArgError("imageID", "cannont be less than 1")
+	}
+
+	path := fmt.Sprintf("v2/images/%d/actions", imageID)
+
+	convertRequest := &ActionRequest{
+		"type": "convert",
+	}
+
+	req, err := i.client.NewRequest(ctx, "POST", path, convertRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(actionRoot)
+	resp, err := i.client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -65,7 +93,7 @@ func (i *ImageActionsServiceOp) Get(ctx context.Context, imageID, actionID int) 
 	}
 
 	root := new(actionRoot)
-	resp, err := i.client.Do(req, root)
+	resp, err := i.client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}

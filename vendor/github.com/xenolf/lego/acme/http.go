@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"runtime"
 	"strings"
@@ -15,7 +16,17 @@ import (
 var UserAgent string
 
 // HTTPClient is an HTTP client with a reasonable timeout value.
-var HTTPClient = http.Client{Timeout: 10 * time.Second}
+var HTTPClient = http.Client{
+	Transport: &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout:   15 * time.Second,
+		ResponseHeaderTimeout: 15 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	},
+}
 
 const (
 	// defaultGoUserAgent is the Go HTTP package user agent string. Too
@@ -97,10 +108,41 @@ func postJSON(j *jws, uri string, reqBody, respBody interface{}) (http.Header, e
 	if err != nil {
 		return nil, fmt.Errorf("Failed to post JWS message. -> %v", err)
 	}
+
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= http.StatusBadRequest {
-		return resp.Header, handleHTTPError(resp)
+
+		err := handleHTTPError(resp)
+
+		switch err.(type) {
+
+		case NonceError:
+
+			// Retry once if the nonce was invalidated
+
+			retryResp, err := j.post(uri, jsonBytes)
+			if err != nil {
+				return nil, fmt.Errorf("Failed to post JWS message. -> %v", err)
+			}
+
+			defer retryResp.Body.Close()
+
+			if retryResp.StatusCode >= http.StatusBadRequest {
+				return retryResp.Header, handleHTTPError(retryResp)
+			}
+
+			if respBody == nil {
+				return retryResp.Header, nil
+			}
+
+			return retryResp.Header, json.NewDecoder(retryResp.Body).Decode(respBody)
+
+		default:
+			return resp.Header, err
+
+		}
+
 	}
 
 	if respBody == nil {
