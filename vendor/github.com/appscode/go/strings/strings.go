@@ -18,6 +18,14 @@ func Reverse(s string) string {
 	return string(buf)
 }
 
+func PrefixFold(s, prefix string) bool {
+	return len(s) >= len(prefix) && strings.EqualFold(prefix, s[:len(prefix)])
+}
+
+func IsEmpty(s *string) bool {
+	return s == nil || *s == ""
+}
+
 func IsBothAlphaNum(a string) bool {
 	alpha := false
 	num := false
@@ -41,10 +49,6 @@ func Contains(a []string, e string) bool {
 		}
 	}
 	return false
-}
-
-func EqualIgnoreCase(a, b string) bool {
-	return strings.EqualFold(a, b)
 }
 
 // Allowed char: [a-z0-9]([a-z0-9-]*[a-z0-9])?
