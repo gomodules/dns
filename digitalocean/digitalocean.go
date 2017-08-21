@@ -63,16 +63,22 @@ func (c *DNSProvider) EnsureARecord(domain string, ip string) error {
 	authZone = acme.UnFqdn(authZone)
 	relative := toRelativeRecord(domain, authZone)
 
-	records, _, err := c.client.Domains.Records(context.TODO(), authZone, &godo.ListOptions{
-		PerPage: 100,
-	})
-	if err != nil {
-		return err
-	}
-	for _, record := range records {
-		if record.Type == "A" && record.Name == relative && record.Data == ip {
-			log.Println("DNS is already configured. No DNS related change is necessary.")
-			return nil
+	for page := 1; true; page++ {
+		records, _, err := c.client.Domains.Records(context.TODO(), authZone, &godo.ListOptions{
+			Page:    page,
+			PerPage: 100,
+		})
+		if err != nil {
+			return err
+		}
+		for _, record := range records {
+			if record.Type == "A" && record.Name == relative && record.Data == ip {
+				log.Println("DNS is already configured. No DNS related change is necessary.")
+				return nil
+			}
+		}
+		if len(records) < 100 {
+			break
 		}
 	}
 	_, _, err = c.client.Domains.CreateRecord(context.TODO(), authZone, &godo.DomainRecordEditRequest{
@@ -91,18 +97,25 @@ func (c *DNSProvider) DeleteARecords(domain string) error {
 	authZone = acme.UnFqdn(authZone)
 	relative := toRelativeRecord(domain, authZone)
 
-	records, _, err := c.client.Domains.Records(context.TODO(), authZone, &godo.ListOptions{
-		PerPage: 100,
-	})
-	if err != nil {
-		return err
-	}
-	for _, record := range records {
-		if record.Type == "A" && record.Name == relative {
-			_, err = c.client.Domains.DeleteRecord(context.TODO(), authZone, record.ID)
-			if err != nil {
-				return err
+	for page := 1; true; page++ {
+		records, _, err := c.client.Domains.Records(context.TODO(), authZone, &godo.ListOptions{
+			Page:    page,
+			PerPage: 100,
+		})
+		if err != nil {
+			return err
+		}
+		for _, record := range records {
+			if record.Type == "A" && record.Name == relative {
+				_, err = c.client.Domains.DeleteRecord(context.TODO(), authZone, record.ID)
+				if err != nil {
+					return err
+				}
+				log.Println("Record Deleted:", record)
 			}
+		}
+		if len(records) < 100 {
+			break
 		}
 	}
 	return nil
