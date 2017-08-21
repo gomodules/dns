@@ -93,6 +93,29 @@ func (c *DNSProvider) DeleteARecords(domain string) error {
 	return nil
 }
 
+func (c *DNSProvider) DeleteARecord(domain string, ip string) error {
+	zoneDomain, err := c.getHostedZone(domain)
+	if err != nil {
+		return err
+	}
+	relative := toRelativeRecord(domain, zoneDomain)
+
+	records, err := c.client.GetDNSRecords(zoneDomain)
+	if err != nil {
+		return err
+	}
+	for _, record := range records {
+		if record.Type == "A" && record.Name == relative && record.Data == ip {
+			err = c.client.DeleteDNSRecord(zoneDomain, record.RecordID)
+			if err != nil {
+				return err
+			}
+			log.Println("Record Deleted:", record)
+		}
+	}
+	return nil
+}
+
 func (c *DNSProvider) getHostedZone(domain string) (string, error) {
 	domains, err := c.client.GetDNSDomains()
 	if err != nil {

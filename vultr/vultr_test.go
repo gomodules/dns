@@ -65,3 +65,17 @@ func TestLiveDeleteARecords(t *testing.T) {
 	err = provider.DeleteARecords(domain)
 	assert.NoError(t, err)
 }
+
+func TestLiveDeleteARecord(t *testing.T) {
+	if !liveTest {
+		t.Skip("skipping live test")
+	}
+
+	time.Sleep(time.Second * 1)
+
+	provider, err := NewDNSProvider()
+	assert.NoError(t, err)
+
+	err = provider.DeleteARecord(domain, ip)
+	assert.NoError(t, err)
+}
