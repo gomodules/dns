@@ -121,6 +121,38 @@ func (c *DNSProvider) DeleteARecords(domain string) error {
 	return nil
 }
 
+func (c *DNSProvider) DeleteARecord(domain string, ip string) error {
+	authZone, err := acme.FindZoneByFqdn(acme.ToFqdn(domain), acme.RecursiveNameservers)
+	if err != nil {
+		return fmt.Errorf("Could not determine zone for domain: '%s'. %s", domain, err)
+	}
+	authZone = acme.UnFqdn(authZone)
+	relative := toRelativeRecord(domain, authZone)
+
+	for page := 1; true; page++ {
+		records, _, err := c.client.Domains.Records(context.TODO(), authZone, &godo.ListOptions{
+			Page:    page,
+			PerPage: 100,
+		})
+		if err != nil {
+			return err
+		}
+		for _, record := range records {
+			if record.Type == "A" && record.Name == relative && record.Data == ip {
+				_, err = c.client.Domains.DeleteRecord(context.TODO(), authZone, record.ID)
+				if err != nil {
+					return err
+				}
+				log.Println("Record Deleted:", record)
+			}
+		}
+		if len(records) < 100 {
+			break
+		}
+	}
+	return nil
+}
+
 // Returns the relative record to the domain
 func toRelativeRecord(domain, zone string) string {
 	return acme.UnFqdn(strings.TrimSuffix(domain, zone))

@@ -71,3 +71,15 @@ func TestDigitalOceanDeleteARecords(t *testing.T) {
 	err = provider.DeleteARecords(doDomain)
 	assert.NoError(t, err)
 }
+
+func TestDigitalOceanDeleteARecord(t *testing.T) {
+	if !doLiveTest {
+		t.Skip("skipping live test")
+	}
+
+	provider, err := NewDNSProviderCredentials(Options{AuthToken: doAuthToken})
+	assert.NoError(t, err)
+
+	err = provider.DeleteARecord(doDomain, doIP)
+	assert.NoError(t, err)
+}
