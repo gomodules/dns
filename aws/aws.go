@@ -185,6 +185,59 @@ func (r *DNSProvider) DeleteARecords(domain string) error {
 	return err
 }
 
+func (r *DNSProvider) DeleteARecord(domain string, ip string) error {
+	fqdn := acme.ToFqdn(domain)
+	hostedZoneID, err := getHostedZoneID(fqdn, r.client)
+	if err != nil {
+		return fmt.Errorf("Failed to determine Route 53 hosted zone ID: %v", err)
+	}
+
+	resp, err := r.client.ListResourceRecordSets(&route53.ListResourceRecordSetsInput{
+		HostedZoneId:    aws.String(hostedZoneID),
+		StartRecordName: aws.String(fqdn),
+		StartRecordType: aws.String(route53.RRTypeA),
+	})
+	if err != nil {
+		return err
+	}
+	if len(resp.ResourceRecordSets) == 0 || !contains(resp.ResourceRecordSets[0].ResourceRecords, ip) {
+		log.Println("No A record found. No DNS related change is necessary.")
+		return nil
+	}
+	recordSet := resp.ResourceRecordSets[0]
+
+	recordsNew := make([]*route53.ResourceRecord, 0)
+	for _, item := range recordSet.ResourceRecords {
+		if *item.Value != ip {
+			recordsNew = append(recordsNew, item)
+		}
+	}
+
+	reqParams := &route53.ChangeResourceRecordSetsInput{
+		HostedZoneId: aws.String(hostedZoneID),
+		ChangeBatch: &route53.ChangeBatch{
+			Comment: aws.String("Managed by AppsCode"),
+			Changes: make([]*route53.Change, 0),
+		},
+	}
+
+	if len(recordsNew) == 0 { // delete recordset
+		reqParams.ChangeBatch.Changes = append(reqParams.ChangeBatch.Changes, &route53.Change{
+			Action:            aws.String(route53.ChangeActionDelete),
+			ResourceRecordSet: recordSet,
+		})
+	} else {
+		recordSet.ResourceRecords = recordsNew // update recordset
+		reqParams.ChangeBatch.Changes = append(reqParams.ChangeBatch.Changes, &route53.Change{
+			Action:            aws.String(route53.ChangeActionUpsert),
+			ResourceRecordSet: recordSet,
+		})
+	}
+
+	_, err = r.client.ChangeResourceRecordSets(reqParams)
+	return err
+}
+
 func getHostedZoneID(fqdn string, client *route53.Route53) (string, error) {
 	authZone, err := acme.FindZoneByFqdn(fqdn, acme.RecursiveNameservers)
 	if err != nil {
