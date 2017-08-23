@@ -107,39 +107,42 @@ func (r *DNSProvider) EnsureARecord(domain string, ip string) error {
 		return err
 	}
 
-	log.Println("Updating A record for cluster", domain)
+	if len(resp.ResourceRecordSets) > 0 && contains(resp.ResourceRecordSets[0].ResourceRecords, ip) {
+		log.Println("DNS is already configured. No DNS related change is necessary.")
+		return nil
+	}
+
 	reqParams := &route53.ChangeResourceRecordSetsInput{
 		HostedZoneId: aws.String(hostedZoneID),
 		ChangeBatch: &route53.ChangeBatch{
 			Comment: aws.String("Managed by AppsCode"),
-			Changes: make([]*route53.Change, 0),
+			Changes: []*route53.Change{
+				{
+					Action: aws.String(route53.ChangeActionUpsert),
+					ResourceRecordSet: &route53.ResourceRecordSet{
+						Name: aws.String(fqdn),
+						Type: aws.String(route53.RRTypeA),
+						TTL:  aws.Int64(ttl),
+						ResourceRecords: []*route53.ResourceRecord{
+							{
+								Value: aws.String(ip),
+							},
+						},
+					},
+				},
+			},
 		},
 	}
-	if len(resp.ResourceRecordSets) == 0 || !contains(resp.ResourceRecordSets[0].ResourceRecords, ip) {
-		rrecords := []*route53.ResourceRecord{
-			{
-				Value: aws.String(ip),
-			},
-		}
-		if len(resp.ResourceRecordSets) > 0 {
-			rrecords = append(rrecords, resp.ResourceRecordSets[0].ResourceRecords...)
-		}
 
-		log.Println("Adding A record ", []string{ip})
-		reqParams.ChangeBatch.Changes = append(reqParams.ChangeBatch.Changes, &route53.Change{
-			Action: aws.String(route53.ChangeActionUpsert),
-			ResourceRecordSet: &route53.ResourceRecordSet{
-				Name:            aws.String(fqdn),
-				Type:            aws.String(route53.RRTypeA),
-				ResourceRecords: rrecords,
-				TTL:             aws.Int64(ttl),
-			},
-		})
+	if len(resp.ResourceRecordSets) == 0 || *resp.ResourceRecordSets[0].Name != fqdn {
+		log.Println("Adding A record for domain", domain)
+	} else { // append existing values
+		log.Println("Updating A record for domain", domain)
+		reqParams.ChangeBatch.Changes[0].ResourceRecordSet.ResourceRecords = append(
+			reqParams.ChangeBatch.Changes[0].ResourceRecordSet.ResourceRecords,
+			resp.ResourceRecordSets[0].ResourceRecords...)
 	}
-	if len(reqParams.ChangeBatch.Changes) == 0 {
-		log.Println("DNS is already configured. No DNS related change is necessary.")
-		return nil
-	}
+
 	_, err = r.client.ChangeResourceRecordSets(reqParams)
 	return err
 }
