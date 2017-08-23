@@ -162,15 +162,9 @@ func (r *DNSProvider) DeleteARecords(domain string) error {
 	if err != nil {
 		return err
 	}
-	if len(resp.ResourceRecordSets) == 0 {
+	if len(resp.ResourceRecordSets) == 0 || *resp.ResourceRecordSets[0].Name != fqdn{
 		log.Println("No A record found. No DNS related change is necessary.")
 		return nil
-	}
-	recordSet := &route53.ResourceRecordSet{
-		Name:            aws.String(fqdn),
-		Type:            aws.String(route53.RRTypeA),
-		TTL:             aws.Int64(ttl),
-		ResourceRecords: resp.ResourceRecordSets[0].ResourceRecords,
 	}
 	reqParams := &route53.ChangeResourceRecordSetsInput{
 		HostedZoneId: aws.String(hostedZoneID),
@@ -179,7 +173,7 @@ func (r *DNSProvider) DeleteARecords(domain string) error {
 			Changes: []*route53.Change{
 				{
 					Action:            aws.String(route53.ChangeActionDelete),
-					ResourceRecordSet: recordSet,
+					ResourceRecordSet: resp.ResourceRecordSets[0],
 				},
 			},
 		},
