@@ -171,6 +171,59 @@ func (c *DNSProvider) DeleteARecords(domain string) error {
 	return nil
 }
 
+func (c *DNSProvider) DeleteARecord(domain string, ip string) error {
+	zone, err := c.getHostedZone(domain)
+	if err != nil {
+		return err
+	}
+
+	r1, err := c.client.ResourceRecordSets.List(c.project, zone).
+		Name(acme.ToFqdn(domain)).
+		Type("A").
+		Do()
+	if err != nil {
+		return err
+	}
+	if len(r1.Rrsets) == 0 || !strings.Contains(r1.Rrsets[0].Rrdatas, ip) {
+		log.Println("No record found")
+		return nil
+	}
+
+	// create a new list by removing matched ips
+	ips := make([]string, 0)
+	for _, item := range r1.Rrsets[0].Rrdatas {
+		if item != ip {
+			ips = append(ips, item)
+		}
+	}
+
+	// can't update record set, need to delete existing one and insert modified one
+	changes := &dns.Change{
+		Deletions: make([]*dns.ResourceRecordSet, 0),
+		Additions: make([]*dns.ResourceRecordSet, 0),
+	}
+	changes.Deletions = append(changes.Deletions, &dns.ResourceRecordSet{
+		Name:    acme.ToFqdn(domain),
+		Type:    "A",
+		Ttl:     r1.Rrsets[0].Ttl,
+		Rrdatas: r1.Rrsets[0].Rrdatas,
+	})
+	if len(ips) > 0 {
+		changes.Additions = append(changes.Additions, &dns.ResourceRecordSet{
+			Name:    acme.ToFqdn(domain),
+			Type:    "A",
+			Ttl:     int64(300),
+			Rrdatas: ips,
+		})
+	}
+	_, err = c.client.Changes.Create(c.project, zone, changes).Do()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // getHostedZone returns the managed-zone
 func (c *DNSProvider) getHostedZone(domain string) (string, error) {
 	authZone, err := acme.FindZoneByFqdn(acme.ToFqdn(domain), acme.RecursiveNameservers)
