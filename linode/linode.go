@@ -117,6 +117,27 @@ func (p *DNSProvider) DeleteARecords(domain string) error {
 	return nil
 }
 
+func (p *DNSProvider) DeleteARecord(domain string, ip string) error {
+	zone, err := p.getHostedZoneInfo(acme.ToFqdn(domain))
+	if err != nil {
+		return err
+	}
+
+	records, err := p.linode.GetResourcesByType(zone.domainId, "A")
+	if err != nil {
+		return err
+	}
+	for _, record := range records {
+		if record.Type == "A" && record.Name == zone.resourceName && record.Target == ip {
+			_, err = p.linode.DeleteDomainResource(record.DomainID, record.ResourceID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (p *DNSProvider) getHostedZoneInfo(fqdn string) (*hostedZoneInfo, error) {
 	// Lookup the zone that handles the specified FQDN.
 	authZone, err := acme.FindZoneByFqdn(fqdn, acme.RecursiveNameservers)
