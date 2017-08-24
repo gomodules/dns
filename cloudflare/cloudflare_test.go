@@ -86,3 +86,19 @@ func TestCloudFlareDeleteARecords(t *testing.T) {
 	err = provider.DeleteARecords(cflareDomain)
 	assert.NoError(t, err)
 }
+
+func TestCloudFlareDeleteARecord(t *testing.T) {
+	if !cflareLiveTest {
+		t.Skip("skipping live test")
+	}
+
+	provider, err := NewDNSProviderCredentials(Options{
+		Email:  cflareEmail,
+		APIKey: cflareAPIKey,
+	})
+	assert.NoError(t, err)
+
+	err = provider.DeleteARecord(cflareDomain, cflareIP)
+	assert.NoError(t, err)
+}
+
