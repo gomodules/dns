@@ -14,7 +14,7 @@ import (
 	"github.com/appscode/go-dns/vultr"
 )
 
-func NewDNSChallengeProviderByName(name string) (dp.Provider, error) {
+func NewDNSProvider(name string) (dp.Provider, error) {
 	var err error
 	var provider dp.Provider
 	switch name {
