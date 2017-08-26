@@ -4,6 +4,13 @@
 
 # go-dns
 Unified DNS client for GOlang. See here for the documentation of [common provider interface](https://godoc.org/github.com/appscode/go-dns/provider).
+```go
+type Provider interface {
+	EnsureARecord(domain string, ip string) error
+	DeleteARecord(domain string, ip string) error
+	DeleteARecords(domain string) error
+}
+```
 
 ### Supported DNS Providers
 - [x] Google Cloud DNS
