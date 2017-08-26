@@ -148,23 +148,22 @@ func (c *DNSProvider) DeleteARecord(domain string, ip string) error {
 	}
 
 	records := *rs.ARecords
-	recordsNew := make([]dns.ARecord, 0)
-
+	updatedRecords := make([]dns.ARecord, 0)
 	// make a new list by removing matched records
 	for _, item := range records {
 		if *item.Ipv4Address != ip {
-			recordsNew = append(recordsNew, item)
+			updatedRecords = append(updatedRecords, item)
 		}
 	}
 
-	if len(records) == len(recordsNew) {
+	if len(records) == len(updatedRecords) {
 		log.Println("No record matched")
 		return nil
 	}
-	if len(recordsNew) == 0 { // if all records matched, delete the recordset
+	if len(updatedRecords) == 0 { // if all records matched, delete the recordset
 		_, err = rsc.Delete(c.opt.ResourceGroup, zone, relative, "A", "")
 	} else { // update the recordset with new list
-		rs.ARecords = &recordsNew
+		rs.ARecords = &updatedRecords
 		_, err = rsc.Update(c.opt.ResourceGroup, zone, relative, "A", rs,"")
 	}
 	return err

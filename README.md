@@ -13,13 +13,13 @@ type Provider interface {
 ```
 
 ### Supported DNS Providers
-- [x] Google Cloud DNS
+- [x] AWS Route53
+- [x] Azure
 - [x] Cloudflare
 - [x] DigitalOcean
-- [x] Vultr
+- [x] Google Cloud DNS
 - [x] Linode
-- [x] Azure
-- [x] AWS Route53
+- [x] Vultr
 
 ### Acknowledgement
 The initial implementation of this library was forked from https://github.com/xenolf/lego/tree/master/providers/dns

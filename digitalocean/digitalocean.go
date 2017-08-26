@@ -28,6 +28,10 @@ type Options struct {
 
 var _ dp.Provider = &DNSProvider{}
 
+const (
+	pageSize = 25
+)
+
 // NewDNSProvider returns a DNSProvider instance configured for Digital
 // Ocean. Credentials must be passed in the environment variable:
 // DO_AUTH_TOKEN.
@@ -63,10 +67,11 @@ func (c *DNSProvider) EnsureARecord(domain string, ip string) error {
 	authZone = acme.UnFqdn(authZone)
 	relative := toRelativeRecord(domain, authZone)
 
-	for page := 1; true; page++ {
+	page := 1
+	for {
 		records, _, err := c.client.Domains.Records(context.TODO(), authZone, &godo.ListOptions{
 			Page:    page,
-			PerPage: 100,
+			PerPage: pageSize,
 		})
 		if err != nil {
 			return err
@@ -77,9 +82,10 @@ func (c *DNSProvider) EnsureARecord(domain string, ip string) error {
 				return nil
 			}
 		}
-		if len(records) < 100 {
+		if len(records) < pageSize {
 			break
 		}
+		page++
 	}
 	_, _, err = c.client.Domains.CreateRecord(context.TODO(), authZone, &godo.DomainRecordEditRequest{
 		Type: "A",
@@ -97,10 +103,11 @@ func (c *DNSProvider) DeleteARecords(domain string) error {
 	authZone = acme.UnFqdn(authZone)
 	relative := toRelativeRecord(domain, authZone)
 
-	for page := 1; true; page++ {
+	page := 1
+	for {
 		records, _, err := c.client.Domains.Records(context.TODO(), authZone, &godo.ListOptions{
 			Page:    page,
-			PerPage: 100,
+			PerPage: pageSize,
 		})
 		if err != nil {
 			return err
@@ -114,9 +121,10 @@ func (c *DNSProvider) DeleteARecords(domain string) error {
 				log.Println("Record Deleted:", record)
 			}
 		}
-		if len(records) < 100 {
+		if len(records) < pageSize {
 			break
 		}
+		page++
 	}
 	return nil
 }
@@ -129,10 +137,11 @@ func (c *DNSProvider) DeleteARecord(domain string, ip string) error {
 	authZone = acme.UnFqdn(authZone)
 	relative := toRelativeRecord(domain, authZone)
 
-	for page := 1; true; page++ {
+	page := 1
+	for {
 		records, _, err := c.client.Domains.Records(context.TODO(), authZone, &godo.ListOptions{
 			Page:    page,
-			PerPage: 100,
+			PerPage: pageSize,
 		})
 		if err != nil {
 			return err
@@ -146,9 +155,10 @@ func (c *DNSProvider) DeleteARecord(domain string, ip string) error {
 				log.Println("Record Deleted:", record)
 			}
 		}
-		if len(records) < 100 {
+		if len(records) < pageSize {
 			break
 		}
+		page++
 	}
 	return nil
 }
