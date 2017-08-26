@@ -100,7 +100,7 @@ func (c *DNSProvider) EnsureARecord(domain string, ip string) error {
 			ARecords: &records,
 		},
 	}
-	_, err = rsc.CreateOrUpdate(c.opt.ResourceGroup, zone, relative, dns.TXT, rec, "", "")
+	_, err = rsc.CreateOrUpdate(c.opt.ResourceGroup, zone, relative, dns.A, rec, "", "")
 	return err
 }
 
@@ -127,6 +127,48 @@ func (c *DNSProvider) DeleteARecords(domain string) error {
 	return err
 }
 
+func (c *DNSProvider) DeleteARecord(domain string, ip string) error {
+	fqdn := acme.ToFqdn(domain)
+	zone, err := c.getHostedZoneID(fqdn)
+	if err != nil {
+		return err
+	}
+
+	spt, err := c.newServicePrincipalTokenFromCredentials(azure.PublicCloud.ResourceManagerEndpoint)
+	rsc := dns.NewRecordSetsClient(c.opt.SubscriptionId)
+	rsc.Authorizer = autorest.NewBearerAuthorizer(spt)
+	relative := toRelativeRecord(fqdn, acme.ToFqdn(zone))
+
+	rs, err := rsc.Get(c.opt.ResourceGroup, zone, relative, "A")
+	if found, err := c.checkResourceExistsFromError(err); err != nil {
+		return err
+	} else if !found {
+		log.Println("No record matched")
+		return nil
+	}
+
+	records := *rs.ARecords
+	updatedRecords := make([]dns.ARecord, 0)
+	// make a new list by removing matched records
+	for _, item := range records {
+		if *item.Ipv4Address != ip {
+			updatedRecords = append(updatedRecords, item)
+		}
+	}
+
+	if len(records) == len(updatedRecords) {
+		log.Println("No record matched")
+		return nil
+	}
+	if len(updatedRecords) == 0 { // if all records matched, delete the recordset
+		_, err = rsc.Delete(c.opt.ResourceGroup, zone, relative, "A", "")
+	} else { // update the recordset with new list
+		rs.ARecords = &updatedRecords
+		_, err = rsc.Update(c.opt.ResourceGroup, zone, relative, "A", rs,"")
+	}
+	return err
+}
+
 // Returns the relative record to the domain
 func toRelativeRecord(domain, zone string) string {
 	return acme.UnFqdn(strings.TrimSuffix(domain, zone))
@@ -134,6 +176,8 @@ func toRelativeRecord(domain, zone string) string {
 
 // Checks that azure has a zone for this domain name.
 func (c *DNSProvider) getHostedZoneID(fqdn string) (string, error) {
+	// return "learnappscode.com", nil  // only for test
+
 	authZone, err := acme.FindZoneByFqdn(fqdn, acme.RecursiveNameservers)
 	if err != nil {
 		return "", err

@@ -113,3 +113,26 @@ func (c *DNSProvider) DeleteARecords(domain string) error {
 	}
 	return nil
 }
+
+func (c *DNSProvider) DeleteARecord(domain string, ip string) error {
+	zoneID, err := c.getHostedZoneID(acme.ToFqdn(domain))
+	if err != nil {
+		return err
+	}
+
+	records, err := c.api.DNSRecords(zoneID, cf.DNSRecord{
+		Type: "A",
+		Name: domain,
+		Content: ip,
+	})
+	if err != nil {
+		return err
+	}
+	for _, record := range records {
+		err = c.api.DeleteDNSRecord(zoneID, record.ID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

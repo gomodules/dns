@@ -104,32 +104,32 @@ func (c *DNSProvider) EnsureARecord(domain string, ip string) error {
 	}
 
 	log.Println("Updating A record for cluster", domain)
-	changes := &dns.Change{
-		Additions: make([]*dns.ResourceRecordSet, 0),
-		Deletions: make([]*dns.ResourceRecordSet, 0),
-	}
+	changes := &dns.Change{}
 	if len(r1.Rrsets) == 0 || !strings.Contains(r1.Rrsets[0].Rrdatas, ip) {
 		ips := []string{ip}
 		if len(r1.Rrsets) > 0 {
 			ips = append(ips, r1.Rrsets[0].Rrdatas...)
 		}
-
 		log.Println("Adding A record ", []string{ip})
-		changes.Additions = append(changes.Additions, &dns.ResourceRecordSet{
-			Name:    acme.ToFqdn(domain),
-			Type:    "A",
-			Ttl:     int64(300),
-			Rrdatas: ips,
-		})
+		changes.Additions = []*dns.ResourceRecordSet{
+			{
+				Name:    acme.ToFqdn(domain),
+				Type:    "A",
+				Ttl:     int64(300),
+				Rrdatas: ips,
+			},
+		}
 	}
 	if len(r1.Rrsets) == 1 && !strings.Contains(r1.Rrsets[0].Rrdatas, ip) {
 		log.Println("Deleting A record ", r1.Rrsets[0].Rrdatas)
-		changes.Deletions = append(changes.Deletions, &dns.ResourceRecordSet{
-			Name:    acme.ToFqdn(domain),
-			Type:    "A",
-			Ttl:     r1.Rrsets[0].Ttl,
-			Rrdatas: r1.Rrsets[0].Rrdatas,
-		})
+		changes.Deletions = []*dns.ResourceRecordSet{
+			{
+				Name:    acme.ToFqdn(domain),
+				Type:    "A",
+				Ttl:     r1.Rrsets[0].Ttl,
+				Rrdatas: r1.Rrsets[0].Rrdatas,
+			},
+		}
 	}
 	if len(changes.Additions)+len(changes.Deletions) == 0 {
 		log.Println("DNS is already configured. No DNS related change is necessary.")
@@ -155,20 +155,69 @@ func (c *DNSProvider) DeleteARecords(domain string) error {
 	}
 	if len(r1.Rrsets) > 0 {
 		changes := &dns.Change{
-			Deletions: make([]*dns.ResourceRecordSet, 0),
+			Deletions: []*dns.ResourceRecordSet{
+				{
+					Name:    acme.ToFqdn(domain),
+					Type:    "A",
+					Ttl:     r1.Rrsets[0].Ttl,
+					Rrdatas: r1.Rrsets[0].Rrdatas,
+				},
+			},
 		}
-		changes.Deletions = append(changes.Deletions, &dns.ResourceRecordSet{
-			Name:    acme.ToFqdn(domain),
-			Type:    "A",
-			Ttl:     r1.Rrsets[0].Ttl,
-			Rrdatas: r1.Rrsets[0].Rrdatas,
-		})
 		_, err = c.client.Changes.Create(c.project, zone, changes).Do()
-		if err != nil {
-			return err
-		}
+		return err
 	}
 	return nil
+}
+
+func (c *DNSProvider) DeleteARecord(domain string, ip string) error {
+	zone, err := c.getHostedZone(domain)
+	if err != nil {
+		return err
+	}
+
+	r1, err := c.client.ResourceRecordSets.List(c.project, zone).
+		Name(acme.ToFqdn(domain)).
+		Type("A").
+		Do()
+	if err != nil {
+		return err
+	}
+	if len(r1.Rrsets) == 0 || !strings.Contains(r1.Rrsets[0].Rrdatas, ip) {
+		log.Println("No record found")
+		return nil
+	}
+
+	// create a new list by removing matched ips
+	ips := make([]string, 0)
+	for _, item := range r1.Rrsets[0].Rrdatas {
+		if item != ip {
+			ips = append(ips, item)
+		}
+	}
+	// can't update record set, need to delete existing one and insert modified one
+	changes := &dns.Change{
+		Deletions: []*dns.ResourceRecordSet{
+			{
+				Name:    acme.ToFqdn(domain),
+				Type:    "A",
+				Ttl:     r1.Rrsets[0].Ttl,
+				Rrdatas: r1.Rrsets[0].Rrdatas,
+			},
+		},
+	}
+	if len(ips) > 0 {
+		changes.Additions = []*dns.ResourceRecordSet{
+			{
+				Name:    acme.ToFqdn(domain),
+				Type:    "A",
+				Ttl:     int64(300),
+				Rrdatas: ips,
+			},
+		}
+	}
+	_, err = c.client.Changes.Create(c.project, zone, changes).Do()
+	return err
 }
 
 // getHostedZone returns the managed-zone

@@ -107,39 +107,45 @@ func (r *DNSProvider) EnsureARecord(domain string, ip string) error {
 		return err
 	}
 
-	log.Println("Updating A record for cluster", domain)
-	reqParams := &route53.ChangeResourceRecordSetsInput{
-		HostedZoneId: aws.String(hostedZoneID),
-		ChangeBatch: &route53.ChangeBatch{
-			Comment: aws.String("Managed by AppsCode"),
-			Changes: make([]*route53.Change, 0),
-		},
-	}
-	if len(resp.ResourceRecordSets) == 0 || !contains(resp.ResourceRecordSets[0].ResourceRecords, ip) {
-		rrecords := []*route53.ResourceRecord{
-			{
-				Value: aws.String(ip),
-			},
-		}
-		if len(resp.ResourceRecordSets) > 0 {
-			rrecords = append(rrecords, resp.ResourceRecordSets[0].ResourceRecords...)
-		}
-
-		log.Println("Adding A record ", []string{ip})
-		reqParams.ChangeBatch.Changes = append(reqParams.ChangeBatch.Changes, &route53.Change{
-			Action: aws.String(route53.ChangeActionUpsert),
-			ResourceRecordSet: &route53.ResourceRecordSet{
-				Name:            aws.String(fqdn),
-				Type:            aws.String(route53.RRTypeA),
-				ResourceRecords: rrecords,
-				TTL:             aws.Int64(ttl),
-			},
-		})
-	}
-	if len(reqParams.ChangeBatch.Changes) == 0 {
+	if len(resp.ResourceRecordSets) > 0 &&
+		*resp.ResourceRecordSets[0].Name == fqdn &&
+		*resp.ResourceRecordSets[0].Type == route53.RRTypeA &&
+		contains(resp.ResourceRecordSets[0].ResourceRecords, ip) {
 		log.Println("DNS is already configured. No DNS related change is necessary.")
 		return nil
 	}
+
+	reqParams := &route53.ChangeResourceRecordSetsInput{
+		HostedZoneId: aws.String(hostedZoneID),
+		ChangeBatch: &route53.ChangeBatch{
+			Comment: aws.String("Managed by appscode/go-dns"),
+			Changes: []*route53.Change{
+				{
+					Action: aws.String(route53.ChangeActionUpsert),
+					ResourceRecordSet: &route53.ResourceRecordSet{
+						Name: aws.String(fqdn),
+						Type: aws.String(route53.RRTypeA),
+						TTL:  aws.Int64(ttl),
+						ResourceRecords: []*route53.ResourceRecord{
+							{
+								Value: aws.String(ip),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	if len(resp.ResourceRecordSets) > 0 &&
+		*resp.ResourceRecordSets[0].Name == fqdn &&
+		*resp.ResourceRecordSets[0].Type == route53.RRTypeA {
+		// append existing values
+		reqParams.ChangeBatch.Changes[0].ResourceRecordSet.ResourceRecords = append(
+			reqParams.ChangeBatch.Changes[0].ResourceRecordSet.ResourceRecords,
+			resp.ResourceRecordSets[0].ResourceRecords...)
+	}
+
 	_, err = r.client.ChangeResourceRecordSets(reqParams)
 	return err
 }
@@ -159,30 +165,86 @@ func (r *DNSProvider) DeleteARecords(domain string) error {
 	if err != nil {
 		return err
 	}
-	if len(resp.ResourceRecordSets) == 0 {
-		log.Println("No A record found. No DNS related change is necessary.")
-		return nil
-	}
-	recordSet := &route53.ResourceRecordSet{
-		Name:            aws.String(fqdn),
-		Type:            aws.String(route53.RRTypeA),
-		TTL:             aws.Int64(ttl),
-		ResourceRecords: resp.ResourceRecordSets[0].ResourceRecords,
-	}
-	reqParams := &route53.ChangeResourceRecordSetsInput{
-		HostedZoneId: aws.String(hostedZoneID),
-		ChangeBatch: &route53.ChangeBatch{
-			Comment: aws.String("Managed by AppsCode"),
-			Changes: []*route53.Change{
-				{
-					Action:            aws.String(route53.ChangeActionDelete),
-					ResourceRecordSet: recordSet,
+	if len(resp.ResourceRecordSets) > 0 &&
+		*resp.ResourceRecordSets[0].Name == fqdn &&
+		*resp.ResourceRecordSets[0].Type == route53.RRTypeA {
+		reqParams := &route53.ChangeResourceRecordSetsInput{
+			HostedZoneId: aws.String(hostedZoneID),
+			ChangeBatch: &route53.ChangeBatch{
+				Comment: aws.String("Managed by appscode/go-dns"),
+				Changes: []*route53.Change{
+					{
+						Action:            aws.String(route53.ChangeActionDelete),
+						ResourceRecordSet: resp.ResourceRecordSets[0],
+					},
 				},
 			},
-		},
+		}
+		_, err = r.client.ChangeResourceRecordSets(reqParams)
+		return err
 	}
-	_, err = r.client.ChangeResourceRecordSets(reqParams)
-	return err
+
+	log.Println("No A record found. No DNS related change is necessary.")
+	return nil
+}
+
+func (r *DNSProvider) DeleteARecord(domain string, ip string) error {
+	fqdn := acme.ToFqdn(domain)
+	hostedZoneID, err := getHostedZoneID(fqdn, r.client)
+	if err != nil {
+		return fmt.Errorf("Failed to determine Route 53 hosted zone ID: %v", err)
+	}
+
+	resp, err := r.client.ListResourceRecordSets(&route53.ListResourceRecordSetsInput{
+		HostedZoneId:    aws.String(hostedZoneID),
+		StartRecordName: aws.String(fqdn),
+		StartRecordType: aws.String(route53.RRTypeA),
+	})
+	if err != nil {
+		return err
+	}
+
+	if len(resp.ResourceRecordSets) > 0 &&
+		*resp.ResourceRecordSets[0].Name == fqdn &&
+		*resp.ResourceRecordSets[0].Type == route53.RRTypeA &&
+		contains(resp.ResourceRecordSets[0].ResourceRecords, ip) {
+
+		reqParams := &route53.ChangeResourceRecordSetsInput{
+			HostedZoneId: aws.String(hostedZoneID),
+			ChangeBatch: &route53.ChangeBatch{
+				Comment: aws.String("Managed by appscode/go-dns"),
+			},
+		}
+
+		updatedRecords := make([]*route53.ResourceRecord, 0)
+		for _, r := range resp.ResourceRecordSets[0].ResourceRecords {
+			if *r.Value != ip {
+				updatedRecords = append(updatedRecords, r)
+			}
+		}
+		if len(updatedRecords) == 0 {
+			// delete recordset
+			reqParams.ChangeBatch.Changes = []*route53.Change{
+				{
+					Action:            aws.String(route53.ChangeActionDelete),
+					ResourceRecordSet: resp.ResourceRecordSets[0],
+				},
+			}
+		} else {
+			// update recordset
+			reqParams.ChangeBatch.Changes = []*route53.Change{
+				{
+					Action:            aws.String(route53.ChangeActionUpsert),
+					ResourceRecordSet: resp.ResourceRecordSets[0],
+				},
+			}
+		}
+		_, err = r.client.ChangeResourceRecordSets(reqParams)
+		return err
+	}
+
+	log.Println("No A record found. No DNS related change is necessary.")
+	return nil
 }
 
 func getHostedZoneID(fqdn string, client *route53.Route53) (string, error) {

@@ -81,3 +81,15 @@ func TestLiveGoogleCloudDeleteARecords(t *testing.T) {
 	err = provider.DeleteARecords(gcloudDomain)
 	assert.NoError(t, err)
 }
+
+func TestLiveGoogleCloudDeleteARecord(t *testing.T) {
+	if !gcloudLiveTest {
+		t.Skip("skipping live test")
+	}
+
+	provider, err := NewDNSProviderCredentials(Options{Project: gcloudProject})
+	assert.NoError(t, err)
+
+	err = provider.DeleteARecord(gcloudDomain, gcloudIP)
+	assert.NoError(t, err)
+}

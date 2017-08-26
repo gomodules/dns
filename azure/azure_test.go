@@ -107,3 +107,23 @@ func TestLiveAzureDeleteARecords(t *testing.T) {
 	err = provider.DeleteARecords(azureDomain)
 	assert.NoError(t, err)
 }
+
+func TestLiveAzureDeleteARecord(t *testing.T) {
+	if !azureLiveTest {
+		t.Skip("skipping live test")
+	}
+
+	provider, err := NewDNSProviderCredentials(Options{
+		TenantId:       azureTenantID,
+		SubscriptionId: azureSubscriptionID,
+		ClientId:       azureClientID,
+		ClientSecret:   azureClientSecret,
+		ResourceGroup:  azureResourceGroup,
+	})
+	time.Sleep(time.Second * 1)
+
+	assert.NoError(t, err)
+
+	err = provider.DeleteARecord(azureDomain, azureIP)
+	assert.NoError(t, err)
+}

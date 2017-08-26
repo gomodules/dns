@@ -5,8 +5,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/appscode/go-dns/exoscale"
+	"github.com/appscode/go-dns/aws"
 	"github.com/stretchr/testify/assert"
+	"github.com/xenolf/lego/providers/dns/exoscale"
 )
 
 var (
@@ -30,7 +31,7 @@ func TestKnownDNSProviderSuccess(t *testing.T) {
 	provider, err := NewDNSChallengeProviderByName("exoscale")
 	assert.NoError(t, err)
 	assert.NotNil(t, provider)
-	if reflect.TypeOf(provider) != reflect.TypeOf(&exoscale.DNSProvider{}) {
+	if reflect.TypeOf(provider) != reflect.TypeOf(&aws.DNSProvider{}) {
 		t.Errorf("Not loaded correct DNS proviver: %v is not *exoscale.DNSProvider", reflect.TypeOf(provider))
 	}
 	restoreExoscaleEnv()
