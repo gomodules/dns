@@ -232,6 +232,7 @@ func (r *DNSProvider) DeleteARecord(domain string, ip string) error {
 			}
 		} else {
 			// update recordset
+			resp.ResourceRecordSets[0].ResourceRecords = updatedRecords
 			reqParams.ChangeBatch.Changes = []*route53.Change{
 				{
 					Action:            aws.String(route53.ChangeActionUpsert),
