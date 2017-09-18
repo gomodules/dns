@@ -164,7 +164,7 @@ func (c *DNSProvider) DeleteARecord(domain string, ip string) error {
 		_, err = rsc.Delete(c.opt.ResourceGroup, zone, relative, "A", "")
 	} else { // update the recordset with new list
 		rs.ARecords = &updatedRecords
-		_, err = rsc.Update(c.opt.ResourceGroup, zone, relative, "A", rs,"")
+		_, err = rsc.Update(c.opt.ResourceGroup, zone, relative, "A", rs, "")
 	}
 	return err
 }

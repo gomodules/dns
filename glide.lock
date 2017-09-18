@@ -1,5 +1,5 @@
-hash: 8122609cb5a91314c9a929d77b360aa4585ffe92dd09a7968346e24aef1c3616
-updated: 2017-08-17T01:37:09.995475032-07:00
+hash: fdf5804fe6b77b9d6ebe2e15456dacb55cb0ac9e4657eece0a2650d6f799e5b3
+updated: 2017-09-18T11:29:04.456771952-07:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -7,7 +7,7 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/appscode/go
-  version: 45732d59b2277b9c7ffdc41d2d5c07a899a20a70
+  version: d1fbd14e5c6e78557c12f6d2c9c282b3c0d0c612
   subpackages:
   - strings
 - name: github.com/aws/aws-sdk-go
@@ -51,27 +51,17 @@ imports:
   - autorest/date
   - autorest/to
 - name: github.com/cloudflare/cloudflare-go
-  version: ba610b87e64f5e99e8ddd614e50669c66c2ec9b5
-- name: github.com/decker502/dnspod-go
-  version: f33a2c6040fc2550a631de7b3a53bddccdcd73fb
+  version: 73188131583704facec77adbb1e666a7917f973c
 - name: github.com/dgrijalva/jwt-go
   version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
 - name: github.com/digitalocean/godo
   version: 4fa9e9d999007b447089056a1c581b5594f0f851
   subpackages:
   - context
-- name: github.com/edeckers/auroradnsclient
-  version: 8b777c170cfd377aa16bb4368f093017dddef3f9
-  subpackages:
-  - records
-  - requests
-  - requests/errors
-  - tokens
-  - zones
 - name: github.com/go-ini/ini
   version: 2e44421e256d82ebbf3d4d4fcabe8930b905eff3
 - name: github.com/golang/protobuf
-  version: 6e4cc92cc905d5f4a73041c1b8228ea08f4c6147
+  version: 8ee79997227bf9b34611aee7946ae64735e6fd93
   subpackages:
   - proto
 - name: github.com/google/go-querystring
@@ -90,64 +80,48 @@ imports:
   version: f611eb38b3875cc3bd991ca91c51d06446afa14c
 - name: github.com/miekg/dns
   version: 5d001d020961ae1c184f9f8152fdc73810481677
-- name: github.com/ovh/go-ovh
-  version: d95f6f91b1fb339a53fc438df7289cd85756193b
-  subpackages:
-  - ovh
 - name: github.com/pkg/errors
   version: a22138067af1c4942683050411a841ade67fe1eb
-- name: github.com/pyr/egoscale
-  version: 6d4bce648770ef59cc1356b9207afaffe93dcb09
-  subpackages:
-  - src/egoscale
-- name: github.com/Sirupsen/logrus
-  version: 3ec0642a7fb6488f65b06f9040adc67e3990296a
+- name: github.com/sirupsen/logrus
+  version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
 - name: github.com/tent/http-link-go
   version: ac974c61c2f990f4115b119354b5e0b47550e888
 - name: github.com/timewasted/linode
   version: 37e84520dcf74488f67654f9c775b9752c232dc1
   subpackages:
   - dns
-- name: github.com/weppos/dnsimple-go
-  version: 65c1ca73cb19baf0f8b2b33219b7f57595a3ccb0
-  subpackages:
-  - dnsimple
 - name: github.com/xenolf/lego
-  version: 8f574e6ca289b530cd3f266f4aa73c9a1161c48a
+  version: 2a3a0a8fda2b967e836316237c0bd03bb8d23bf2
   repo: https://github.com/appscode/lego.git
   vcs: git
   subpackages:
   - acme
 - name: golang.org/x/crypto
-  version: 84e98f45760e87786b7f24603b8166a6fa09811d
+  version: d172538b2cfce0c13cee31e647d0367aa8cd2486
   subpackages:
   - ocsp
 - name: golang.org/x/net
-  version: da118f7b8e5954f39d0d2130ab35d4bf0e3cb344
+  version: f2499483f923065a842d38eb4c7f1927e6fc6e6d
   subpackages:
   - context
   - context/ctxhttp
   - publicsuffix
 - name: golang.org/x/oauth2
-  version: 3c3a985cb79f52a3190fbc056984415ca6763d01
+  version: a6bd8cefa1811bd24b86f8902872e4e8225f74c4
   subpackages:
   - google
   - internal
   - jws
   - jwt
-- name: golang.org/x/sys
-  version: 9bb9f0998d48b31547d975974935ae9b48c7a03c
-  subpackages:
-  - unix
 - name: google.golang.org/api
-  version: 55146ba61254fdb1c26d65ff3c04bc1611ad73fb
+  version: e3824ed33c72bf7e81da0286772c34b987520914
   subpackages:
   - dns/v1
   - gensupport
   - googleapi
   - googleapi/internal/uritemplates
 - name: google.golang.org/appengine
-  version: 4f7eeb5305a4ba1966344836ba4af9996b7b4e05
+  version: 12d5545dc1cfa6047a286d5e853841b6471f4c19
   subpackages:
   - internal
   - internal/app_identity
@@ -158,8 +132,6 @@ imports:
   - internal/remote_api
   - internal/urlfetch
   - urlfetch
-- name: gopkg.in/ini.v1
-  version: 20b96f641a5ea98f2f8619ff4f3e061cff4833bd
 - name: gopkg.in/square/go-jose.v1
   version: aa2e30fdd1fe9dd3394119af66451ae790d50e0d
   subpackages:
