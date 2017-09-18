@@ -7,7 +7,6 @@ import (
 
 	"github.com/appscode/go-dns/aws"
 	"github.com/stretchr/testify/assert"
-	"github.com/xenolf/lego/providers/dns/exoscale"
 )
 
 var (

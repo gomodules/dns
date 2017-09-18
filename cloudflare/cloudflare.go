@@ -121,8 +121,8 @@ func (c *DNSProvider) DeleteARecord(domain string, ip string) error {
 	}
 
 	records, err := c.api.DNSRecords(zoneID, cf.DNSRecord{
-		Type: "A",
-		Name: domain,
+		Type:    "A",
+		Name:    domain,
 		Content: ip,
 	})
 	if err != nil {

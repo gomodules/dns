@@ -101,4 +101,3 @@ func TestCloudFlareDeleteARecord(t *testing.T) {
 	err = provider.DeleteARecord(cflareDomain, cflareIP)
 	assert.NoError(t, err)
 }
-
