@@ -3,7 +3,7 @@
 [Website](https://appscode.com) • [Slack](https://slack.appscode.com) • [Twitter](https://twitter.com/AppsCodeHQ)
 
 # go-dns
-Unified DNS client for GOlang. See here for the documentation of [common provider interface](https://godoc.org/github.com/appscode/go-dns/provider).
+Unified DNS API client for GOlang. See here for the documentation of [common provider interface](https://godoc.org/github.com/appscode/go-dns/provider).
 ```go
 type Provider interface {
 	EnsureARecord(domain string, ip string) error
