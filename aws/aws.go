@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/route53"
@@ -56,7 +57,6 @@ func (d customRetryer) RetryRules(r *request.Request) time.Duration {
 type Options struct {
 	AccessKeyId     string `json:"access_key_id" envconfig:"AWS_ACCESS_KEY_ID" form:"aws_access_key_id"`
 	SecretAccessKey string `json:"secret_access_key" envconfig:"AWS_SECRET_ACCESS_KEY" form:"aws_secret_access_key"`
-	Region          string `json:"region" envconfig:"AWS_REGION" form:"aws_region"`
 }
 
 // NewDNSProvider returns a DNSProvider instance configured for the AWS
@@ -74,21 +74,35 @@ func Default() (*DNSProvider, error) {
 	r := customRetryer{}
 	r.NumMaxRetries = maxRetries
 	config := request.WithRetryer(aws.NewConfig(), r)
-	client := route53.New(session.New(config))
-
-	return &DNSProvider{client: client}, nil
+	s, err := session.NewSessionWithOptions(session.Options{
+		Config: *config,
+		// Support MFA when authing using assumed roles.
+		SharedConfigState:       session.SharedConfigEnable,
+		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &DNSProvider{client: route53.New(s)}, nil
 }
 
 func New(opt Options) (*DNSProvider, error) {
 	r := customRetryer{}
 	r.NumMaxRetries = maxRetries
 	config := &aws.Config{
-		Credentials: credentials.NewStaticCredentials(opt.AccessKeyId, opt.SecretAccessKey, " "),
-		Region:      aws.String(opt.Region),
+		Credentials: credentials.NewStaticCredentials(opt.AccessKeyId, opt.SecretAccessKey, ""),
 		Retryer:     r,
 	}
-	client := route53.New(session.New(config))
-	return &DNSProvider{client: client}, nil
+	s, err := session.NewSessionWithOptions(session.Options{
+		Config: *config,
+		// Support MFA when authing using assumed roles.
+		SharedConfigState:       session.SharedConfigEnable,
+		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &DNSProvider{client: route53.New(s)}, nil
 }
 
 func (r *DNSProvider) EnsureARecord(domain string, ip string) error {
