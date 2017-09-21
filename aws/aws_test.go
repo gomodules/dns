@@ -12,6 +12,7 @@ import (
 var (
 	route53Secret string
 	route53Key    string
+	route53Region string
 	domain        string
 	ip            string
 	liveTest      bool
@@ -20,6 +21,7 @@ var (
 func init() {
 	route53Key = os.Getenv("AWS_ACCESS_KEY_ID")
 	route53Secret = os.Getenv("AWS_SECRET_ACCESS_KEY")
+	route53Region = os.Getenv("AWS_REGION")
 
 	domain = os.Getenv("AWS_DOMAIN")
 	ip = os.Getenv("AWS_IP")
@@ -31,11 +33,13 @@ func init() {
 func restoreRoute53Env() {
 	os.Setenv("AWS_ACCESS_KEY_ID", route53Key)
 	os.Setenv("AWS_SECRET_ACCESS_KEY", route53Secret)
+	os.Setenv("AWS_REGION", route53Region)
 }
 
 func TestCredentialsFromEnv(t *testing.T) {
 	os.Setenv("AWS_ACCESS_KEY_ID", "123")
 	os.Setenv("AWS_SECRET_ACCESS_KEY", "123")
+	os.Setenv("AWS_REGION", "us-east-1")
 
 	config := &aws.Config{
 		CredentialsChainVerboseErrors: aws.Bool(true),
@@ -44,6 +48,15 @@ func TestCredentialsFromEnv(t *testing.T) {
 	sess := session.New(config)
 	_, err := sess.Config.Credentials.Get()
 	assert.NoError(t, err, "Expected credentials to be set from environment")
+
+	restoreRoute53Env()
+}
+
+func TestRegionFromEnv(t *testing.T) {
+	os.Setenv("AWS_REGION", "us-east-1")
+
+	sess := session.New(aws.NewConfig())
+	assert.Equal(t, "us-east-1", *sess.Config.Region, "Expected Region to be set from environment")
 
 	restoreRoute53Env()
 }

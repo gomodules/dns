@@ -64,7 +64,8 @@ type Options struct {
 //
 // AWS Credentials are automatically detected in the following locations
 // and prioritized in the following order:
-// 1. Environment variables: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+// 1. Environment variables: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,
+//    AWS_REGION, [AWS_SESSION_TOKEN]
 // 2. Shared credentials file (defaults to ~/.aws/credentials)
 // 3. Amazon EC2 IAM role
 //
