@@ -92,6 +92,7 @@ func New(opt Options) (*DNSProvider, error) {
 	config := &aws.Config{
 		Credentials: credentials.NewStaticCredentials(opt.AccessKeyId, opt.SecretAccessKey, ""),
 		Retryer:     r,
+		Region:      aws.String("us-east-1"),
 	}
 	s, err := session.NewSessionWithOptions(session.Options{
 		Config: *config,
