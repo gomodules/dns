@@ -1,17 +1,19 @@
-hash: fdf5804fe6b77b9d6ebe2e15456dacb55cb0ac9e4657eece0a2650d6f799e5b3
-updated: 2017-09-18T11:29:04.456771952-07:00
+hash: d917cad023d40e300e753c9c72a9a8b00ac04831ef4af836e65eb7e15134dcfb
+updated: 2017-09-21T12:25:27.975761464-07:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
   subpackages:
   - compute/metadata
   - internal
+- name: github.com/appscode/envconfig
+  version: 8debe51c027cc6d944705e16415fd948cb32824c
 - name: github.com/appscode/go
-  version: d1fbd14e5c6e78557c12f6d2c9c282b3c0d0c612
+  version: 40c185ab12c60de0218e5e5c319a032498c21695
   subpackages:
   - strings
 - name: github.com/aws/aws-sdk-go
-  version: 63ce630574a5ec05ecd8e8de5cea16332a5a684d
+  version: f4b2120243b92fc47d6a4af71b854b8d5f4de8b5
   subpackages:
   - aws
   - aws/awserr
@@ -61,7 +63,7 @@ imports:
 - name: github.com/go-ini/ini
   version: 2e44421e256d82ebbf3d4d4fcabe8930b905eff3
 - name: github.com/golang/protobuf
-  version: 8ee79997227bf9b34611aee7946ae64735e6fd93
+  version: 4bd1920723d7b7c925de087aa32e2187708897f7
   subpackages:
   - proto
 - name: github.com/google/go-querystring
@@ -81,7 +83,7 @@ imports:
 - name: github.com/miekg/dns
   version: 5d001d020961ae1c184f9f8152fdc73810481677
 - name: github.com/pkg/errors
-  version: a22138067af1c4942683050411a841ade67fe1eb
+  version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/sirupsen/logrus
   version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
 - name: github.com/tent/http-link-go
@@ -91,7 +93,7 @@ imports:
   subpackages:
   - dns
 - name: github.com/xenolf/lego
-  version: 2a3a0a8fda2b967e836316237c0bd03bb8d23bf2
+  version: c6958564222a0451a58df1b4ecb5bc5da4e03aff
   repo: https://github.com/appscode/lego.git
   vcs: git
   subpackages:

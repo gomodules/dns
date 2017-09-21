@@ -72,7 +72,7 @@ func gatherInfo(prefix string, spec interface{}) ([]varInfo, error) {
 	for i := 0; i < s.NumField(); i++ {
 		f := s.Field(i)
 		ftype := typeOfSpec.Field(i)
-		if !f.CanSet() || ftype.Tag.Get("ignored") == "true" {
+		if !f.CanSet() || isTrue(ftype.Tag.Get("ignored")) {
 			continue
 		}
 
@@ -100,7 +100,7 @@ func gatherInfo(prefix string, spec interface{}) ([]varInfo, error) {
 		info.Key = info.Name
 
 		// Best effort to un-pick camel casing as separate words
-		if ftype.Tag.Get("split_words") == "true" {
+		if isTrue(ftype.Tag.Get("split_words")) {
 			words := expr.FindAllStringSubmatch(ftype.Name, -1)
 			if len(words) > 0 {
 				var name []string
@@ -144,6 +144,21 @@ func gatherInfo(prefix string, spec interface{}) ([]varInfo, error) {
 
 // Process populates the specified struct based on environment variables
 func Process(prefix string, spec interface{}) error {
+	return Load(prefix, spec, lookupEnv)
+}
+
+// MustProcess is the same as Process but panics if an error occurs
+func MustProcess(prefix string, spec interface{}) {
+	MustLoad(prefix, spec, lookupEnv)
+}
+
+// LoaderFunc returns value for a given key
+type LoaderFunc func(key string) (value string, found bool)
+
+var _ LoaderFunc = lookupEnv
+
+// Load populates the specified struct based on loader function
+func Load(prefix string, spec interface{}, loader LoaderFunc) error {
 	infos, err := gatherInfo(prefix, spec)
 
 	for _, info := range infos {
@@ -152,9 +167,9 @@ func Process(prefix string, spec interface{}) error {
 		// and an unset value. `os.LookupEnv` is preferred to `syscall.Getenv`,
 		// but it is only available in go1.5 or newer. We're using Go build tags
 		// here to use os.LookupEnv for >=go1.5
-		value, ok := lookupEnv(info.Key)
+		value, ok := loader(info.Key)
 		if !ok && info.Alt != "" {
-			value, ok = lookupEnv(info.Alt)
+			value, ok = loader(info.Alt)
 		}
 
 		def := info.Tags.Get("default")
@@ -164,7 +179,7 @@ func Process(prefix string, spec interface{}) error {
 
 		req := info.Tags.Get("required")
 		if !ok && def == "" {
-			if req == "true" {
+			if isTrue(req) {
 				return fmt.Errorf("required key %s missing value", info.Key)
 			}
 			continue
@@ -185,9 +200,9 @@ func Process(prefix string, spec interface{}) error {
 	return err
 }
 
-// MustProcess is the same as Process but panics if an error occurs
-func MustProcess(prefix string, spec interface{}) {
-	if err := Process(prefix, spec); err != nil {
+// MustLoad is the same as Load but panics if an error occurs
+func MustLoad(prefix string, spec interface{}, loader LoaderFunc) {
+	if err := Load(prefix, spec, loader); err != nil {
 		panic(err)
 	}
 }
@@ -266,24 +281,26 @@ func processField(value string, field reflect.Value) error {
 		}
 		field.Set(sl)
 	case reflect.Map:
-		pairs := strings.Split(value, ",")
 		mp := reflect.MakeMap(typ)
-		for _, pair := range pairs {
-			kvpair := strings.Split(pair, ":")
-			if len(kvpair) != 2 {
-				return fmt.Errorf("invalid map item: %q", pair)
+		if len(strings.TrimSpace(value)) != 0 {
+			pairs := strings.Split(value, ",")
+			for _, pair := range pairs {
+				kvpair := strings.Split(pair, ":")
+				if len(kvpair) != 2 {
+					return fmt.Errorf("invalid map item: %q", pair)
+				}
+				k := reflect.New(typ.Key()).Elem()
+				err := processField(kvpair[0], k)
+				if err != nil {
+					return err
+				}
+				v := reflect.New(typ.Elem()).Elem()
+				err = processField(kvpair[1], v)
+				if err != nil {
+					return err
+				}
+				mp.SetMapIndex(k, v)
 			}
-			k := reflect.New(typ.Key()).Elem()
-			err := processField(kvpair[0], k)
-			if err != nil {
-				return err
-			}
-			v := reflect.New(typ.Elem()).Elem()
-			err = processField(kvpair[1], v)
-			if err != nil {
-				return err
-			}
-			mp.SetMapIndex(k, v)
 		}
 		field.Set(mp)
 	}
@@ -316,4 +333,9 @@ func setterFrom(field reflect.Value) (s Setter) {
 func textUnmarshaler(field reflect.Value) (t encoding.TextUnmarshaler) {
 	interfaceFrom(field, func(v interface{}, ok *bool) { t, *ok = v.(encoding.TextUnmarshaler) })
 	return t
+}
+
+func isTrue(s string) bool {
+	b, _ := strconv.ParseBool(s)
+	return b
 }
