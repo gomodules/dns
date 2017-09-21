@@ -70,7 +70,7 @@ type Options struct {
 // 3. Amazon EC2 IAM role
 //
 // See also: https://github.com/aws/aws-sdk-go/wiki/configuring-sdk
-func NewDNSProvider() (*DNSProvider, error) {
+func Default() (*DNSProvider, error) {
 	r := customRetryer{}
 	r.NumMaxRetries = maxRetries
 	config := request.WithRetryer(aws.NewConfig(), r)
@@ -79,7 +79,7 @@ func NewDNSProvider() (*DNSProvider, error) {
 	return &DNSProvider{client: client}, nil
 }
 
-func NewDNSProviderCredentials(opt Options) (*DNSProvider, error) {
+func New(opt Options) (*DNSProvider, error) {
 	r := customRetryer{}
 	r.NumMaxRetries = maxRetries
 	config := &aws.Config{

@@ -9,7 +9,7 @@ import (
 
 	dp "github.com/appscode/go-dns/provider"
 	cf "github.com/cloudflare/cloudflare-go"
-	"github.com/kelseyhightower/envconfig"
+	"github.com/appscode/envconfig"
 	"github.com/xenolf/lego/acme"
 )
 
@@ -28,18 +28,18 @@ var _ dp.Provider = &DNSProvider{}
 // NewDNSProvider returns a DNSProvider instance configured for cloudflare.
 // Credentials must be passed in the environment variables: CLOUDFLARE_EMAIL
 // and CLOUDFLARE_API_KEY.
-func NewDNSProvider() (*DNSProvider, error) {
+func Default() (*DNSProvider, error) {
 	var opt Options
 	err := envconfig.Process("", &opt)
 	if err != nil {
 		return nil, err
 	}
-	return NewDNSProviderCredentials(opt)
+	return New(opt)
 }
 
 // NewDNSProviderCredentials uses the supplied credentials to return a
 // DNSProvider instance configured for cloudflare.
-func NewDNSProviderCredentials(opt Options) (*DNSProvider, error) {
+func New(opt Options) (*DNSProvider, error) {
 	if opt.Email == "" || opt.APIKey == "" {
 		return nil, errors.New("CloudFlare credentials missing")
 	}

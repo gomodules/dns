@@ -42,7 +42,7 @@ func TestNewDNSProviderValid(t *testing.T) {
 		t.Skip("skipping live test (requires credentials)")
 	}
 	os.Setenv("AZURE_CLIENT_ID", "")
-	_, err := NewDNSProviderCredentials(Options{
+	_, err := New(Options{
 		TenantId:       azureTenantID,
 		SubscriptionId: azureSubscriptionID,
 		ClientId:       azureClientID,
@@ -58,14 +58,14 @@ func TestNewDNSProviderValidEnv(t *testing.T) {
 		t.Skip("skipping live test (requires credentials)")
 	}
 	os.Setenv("AZURE_CLIENT_ID", "other")
-	_, err := NewDNSProvider()
+	_, err := Default()
 	assert.NoError(t, err)
 	restoreAzureEnv()
 }
 
 func TestNewDNSProviderMissingCredErr(t *testing.T) {
 	os.Setenv("AZURE_SUBSCRIPTION_ID", "")
-	_, err := NewDNSProvider()
+	_, err := Default()
 	assert.EqualError(t, err, "Azure configuration missing")
 	restoreAzureEnv()
 }
@@ -75,7 +75,7 @@ func TestLiveAzureEnsureARecord(t *testing.T) {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProviderCredentials(Options{
+	provider, err := New(Options{
 		TenantId:       azureTenantID,
 		SubscriptionId: azureSubscriptionID,
 		ClientId:       azureClientID,
@@ -93,7 +93,7 @@ func TestLiveAzureDeleteARecords(t *testing.T) {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProviderCredentials(Options{
+	provider, err := New(Options{
 		TenantId:       azureTenantID,
 		SubscriptionId: azureSubscriptionID,
 		ClientId:       azureClientID,
@@ -113,7 +113,7 @@ func TestLiveAzureDeleteARecord(t *testing.T) {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProviderCredentials(Options{
+	provider, err := New(Options{
 		TenantId:       azureTenantID,
 		SubscriptionId: azureSubscriptionID,
 		ClientId:       azureClientID,

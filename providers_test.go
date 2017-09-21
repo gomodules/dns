@@ -27,7 +27,7 @@ func restoreExoscaleEnv() {
 func TestKnownDNSProviderSuccess(t *testing.T) {
 	os.Setenv("EXOSCALE_API_KEY", "abc")
 	os.Setenv("EXOSCALE_API_SECRET", "123")
-	provider, err := NewDNSProvider("exoscale")
+	provider, err := Default("exoscale")
 	assert.NoError(t, err)
 	assert.NotNil(t, provider)
 	if reflect.TypeOf(provider) != reflect.TypeOf(&aws.DNSProvider{}) {
@@ -39,12 +39,12 @@ func TestKnownDNSProviderSuccess(t *testing.T) {
 func TestKnownDNSProviderError(t *testing.T) {
 	os.Setenv("EXOSCALE_API_KEY", "")
 	os.Setenv("EXOSCALE_API_SECRET", "")
-	_, err := NewDNSProvider("exoscale")
+	_, err := Default("exoscale")
 	assert.Error(t, err)
 	restoreExoscaleEnv()
 }
 
 func TestUnknownDNSProvider(t *testing.T) {
-	_, err := NewDNSProvider("foobar")
+	_, err := Default("foobar")
 	assert.Error(t, err)
 }

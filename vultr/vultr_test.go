@@ -29,14 +29,14 @@ func restoreEnv() {
 func TestNewDNSProviderValidEnv(t *testing.T) {
 	os.Setenv("VULTR_API_KEY", "123")
 	defer restoreEnv()
-	_, err := NewDNSProvider()
+	_, err := Default()
 	assert.NoError(t, err)
 }
 
 func TestNewDNSProviderMissingCredErr(t *testing.T) {
 	os.Setenv("VULTR_API_KEY", "")
 	defer restoreEnv()
-	_, err := NewDNSProvider()
+	_, err := Default()
 	assert.EqualError(t, err, "Vultr credentials missing")
 }
 
@@ -45,7 +45,7 @@ func TestLiveEnsureARecord(t *testing.T) {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProvider()
+	provider, err := Default()
 	assert.NoError(t, err)
 
 	err = provider.EnsureARecord(domain, ip)
@@ -59,7 +59,7 @@ func TestLiveDeleteARecords(t *testing.T) {
 
 	time.Sleep(time.Second * 1)
 
-	provider, err := NewDNSProvider()
+	provider, err := Default()
 	assert.NoError(t, err)
 
 	err = provider.DeleteARecords(domain)
@@ -73,7 +73,7 @@ func TestLiveDeleteARecord(t *testing.T) {
 
 	time.Sleep(time.Second * 1)
 
-	provider, err := NewDNSProvider()
+	provider, err := Default()
 	assert.NoError(t, err)
 
 	err = provider.DeleteARecord(domain, ip)

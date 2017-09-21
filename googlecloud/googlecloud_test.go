@@ -36,7 +36,7 @@ func TestNewDNSProviderValid(t *testing.T) {
 		t.Skip("skipping live test (requires credentials)")
 	}
 	os.Setenv("GCE_PROJECT", "")
-	_, err := NewDNSProviderCredentials(Options{Project: "my-project"})
+	_, err := New(Options{Project: "my-project"})
 	assert.NoError(t, err)
 	restoreGCloudEnv()
 }
@@ -46,14 +46,14 @@ func TestNewDNSProviderValidEnv(t *testing.T) {
 		t.Skip("skipping live test (requires credentials)")
 	}
 	os.Setenv("GCE_PROJECT", "my-project")
-	_, err := NewDNSProvider()
+	_, err := Default()
 	assert.NoError(t, err)
 	restoreGCloudEnv()
 }
 
 func TestNewDNSProviderMissingCredErr(t *testing.T) {
 	os.Setenv("GCE_PROJECT", "")
-	_, err := NewDNSProvider()
+	_, err := Default()
 	assert.EqualError(t, err, "Google Cloud project name missing")
 	restoreGCloudEnv()
 }
@@ -63,7 +63,7 @@ func TestLiveGoogleCloudEnsureARecord(t *testing.T) {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProviderCredentials(Options{Project: gcloudProject})
+	provider, err := New(Options{Project: gcloudProject})
 	assert.NoError(t, err)
 
 	err = provider.EnsureARecord(gcloudDomain, gcloudIP)
@@ -75,7 +75,7 @@ func TestLiveGoogleCloudDeleteARecords(t *testing.T) {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProviderCredentials(Options{Project: gcloudProject})
+	provider, err := New(Options{Project: gcloudProject})
 	assert.NoError(t, err)
 
 	err = provider.DeleteARecords(gcloudDomain)
@@ -87,7 +87,7 @@ func TestLiveGoogleCloudDeleteARecord(t *testing.T) {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProviderCredentials(Options{Project: gcloudProject})
+	provider, err := New(Options{Project: gcloudProject})
 	assert.NoError(t, err)
 
 	err = provider.DeleteARecord(gcloudDomain, gcloudIP)

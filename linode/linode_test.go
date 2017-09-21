@@ -30,24 +30,24 @@ func restoreEnv() {
 func TestNewDNSProviderWithEnv(t *testing.T) {
 	os.Setenv("LINODE_API_KEY", "testing")
 	defer restoreEnv()
-	_, err := NewDNSProvider()
+	_, err := Default()
 	assert.NoError(t, err)
 }
 
 func TestNewDNSProviderWithoutEnv(t *testing.T) {
 	os.Setenv("LINODE_API_KEY", "")
 	defer restoreEnv()
-	_, err := NewDNSProvider()
+	_, err := Default()
 	assert.EqualError(t, err, "Linode credentials missing")
 }
 
 func TestNewDNSProviderCredentialsWithKey(t *testing.T) {
-	_, err := NewDNSProviderCredentials(Options{ApiKey: "testing"})
+	_, err := New(Options{ApiKey: "testing"})
 	assert.NoError(t, err)
 }
 
 func TestNewDNSProviderCredentialsWithoutKey(t *testing.T) {
-	_, err := NewDNSProviderCredentials(Options{})
+	_, err := New(Options{})
 	assert.EqualError(t, err, "Linode credentials missing")
 }
 
@@ -56,7 +56,7 @@ func TestLiveEnsureARecord(t *testing.T) {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProvider()
+	provider, err := Default()
 	assert.NoError(t, err)
 
 	err = provider.EnsureARecord(domain, ip)
@@ -68,7 +68,7 @@ func TestLiveDeleteARecords(t *testing.T) {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProvider()
+	provider, err := Default()
 	assert.NoError(t, err)
 
 	err = provider.DeleteARecords(domain)
@@ -80,7 +80,7 @@ func TestLiveDeleteARecord(t *testing.T) {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProvider()
+	provider, err := Default()
 	assert.NoError(t, err)
 
 	err = provider.DeleteARecord(domain, ip)

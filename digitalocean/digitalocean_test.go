@@ -29,21 +29,21 @@ func restoreDigitalOceanEnv() {
 
 func TestNewDNSProviderValid(t *testing.T) {
 	os.Setenv("DO_AUTH_TOKEN", "")
-	_, err := NewDNSProviderCredentials(Options{AuthToken: "123"})
+	_, err := New(Options{AuthToken: "123"})
 	assert.NoError(t, err)
 	restoreDigitalOceanEnv()
 }
 
 func TestNewDNSProviderValidEnv(t *testing.T) {
 	os.Setenv("DO_AUTH_TOKEN", "123")
-	_, err := NewDNSProvider()
+	_, err := Default()
 	assert.NoError(t, err)
 	restoreDigitalOceanEnv()
 }
 
 func TestNewDNSProviderMissingCredErr(t *testing.T) {
 	os.Setenv("DO_AUTH_TOKEN", "")
-	_, err := NewDNSProvider()
+	_, err := Default()
 	assert.EqualError(t, err, "DigitalOcean credentials missing")
 	restoreDigitalOceanEnv()
 }
@@ -53,7 +53,7 @@ func TestDigitalOceanEnsureARecord(t *testing.T) {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProviderCredentials(Options{AuthToken: doAuthToken})
+	provider, err := New(Options{AuthToken: doAuthToken})
 	assert.NoError(t, err)
 
 	err = provider.EnsureARecord(doDomain, doIP)
@@ -65,7 +65,7 @@ func TestDigitalOceanDeleteARecords(t *testing.T) {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProviderCredentials(Options{AuthToken: doAuthToken})
+	provider, err := New(Options{AuthToken: doAuthToken})
 	assert.NoError(t, err)
 
 	err = provider.DeleteARecords(doDomain)
@@ -77,7 +77,7 @@ func TestDigitalOceanDeleteARecord(t *testing.T) {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProviderCredentials(Options{AuthToken: doAuthToken})
+	provider, err := New(Options{AuthToken: doAuthToken})
 	assert.NoError(t, err)
 
 	err = provider.DeleteARecord(doDomain, doIP)

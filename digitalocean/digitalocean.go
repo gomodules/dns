@@ -11,7 +11,7 @@ import (
 
 	dp "github.com/appscode/go-dns/provider"
 	"github.com/digitalocean/godo"
-	"github.com/kelseyhightower/envconfig"
+	"github.com/appscode/envconfig"
 	"github.com/xenolf/lego/acme"
 	"golang.org/x/oauth2"
 )
@@ -35,18 +35,18 @@ const (
 // NewDNSProvider returns a DNSProvider instance configured for Digital
 // Ocean. Credentials must be passed in the environment variable:
 // DO_AUTH_TOKEN.
-func NewDNSProvider() (*DNSProvider, error) {
+func Default() (*DNSProvider, error) {
 	var opt Options
 	err := envconfig.Process("", &opt)
 	if err != nil {
 		return nil, err
 	}
-	return NewDNSProviderCredentials(opt)
+	return New(opt)
 }
 
 // NewDNSProviderCredentials uses the supplied credentials to return a
 // DNSProvider instance configured for Digital Ocean.
-func NewDNSProviderCredentials(opt Options) (*DNSProvider, error) {
+func New(opt Options) (*DNSProvider, error) {
 	if opt.AuthToken == "" {
 		return nil, errors.New("DigitalOcean credentials missing")
 	}

@@ -16,7 +16,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
 	dp "github.com/appscode/go-dns/provider"
-	"github.com/kelseyhightower/envconfig"
+	"github.com/appscode/envconfig"
 	"github.com/xenolf/lego/acme"
 )
 
@@ -38,17 +38,17 @@ type Options struct {
 // NewDNSProvider returns a DNSProvider instance configured for azure.
 // Credentials must be passed in the environment variables: AZURE_CLIENT_ID,
 // AZURE_CLIENT_SECRET, AZURE_SUBSCRIPTION_ID, AZURE_TENANT_ID
-func NewDNSProvider() (*DNSProvider, error) {
+func Default() (*DNSProvider, error) {
 	var opt Options
 	if err := envconfig.Process("", &opt); err != nil {
 		return nil, err
 	}
-	return NewDNSProviderCredentials(opt)
+	return New(opt)
 }
 
 // NewDNSProviderCredentials uses the supplied credentials to return a
 // DNSProvider instance configured for azure.
-func NewDNSProviderCredentials(opt Options) (*DNSProvider, error) {
+func New(opt Options) (*DNSProvider, error) {
 	if opt.ClientId == "" || opt.ClientSecret == "" || opt.SubscriptionId == "" || opt.TenantId == "" || opt.ResourceGroup == "" {
 		return nil, fmt.Errorf("Azure configuration missing")
 	}

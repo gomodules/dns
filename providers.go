@@ -14,24 +14,24 @@ import (
 	"github.com/appscode/go-dns/vultr"
 )
 
-func NewDNSProvider(name string) (dp.Provider, error) {
+func Default(name string) (dp.Provider, error) {
 	var err error
 	var provider dp.Provider
 	switch name {
 	case "azure":
-		provider, err = azure.NewDNSProvider()
+		provider, err = azure.Default()
 	case "cloudflare":
-		provider, err = cloudflare.NewDNSProvider()
+		provider, err = cloudflare.Default()
 	case "digitalocean":
-		provider, err = digitalocean.NewDNSProvider()
+		provider, err = digitalocean.Default()
 	case "gcloud":
-		provider, err = googlecloud.NewDNSProvider()
+		provider, err = googlecloud.Default()
 	case "linode":
-		provider, err = linode.NewDNSProvider()
+		provider, err = linode.Default()
 	case "aws", "route53":
-		provider, err = aws.NewDNSProvider()
+		provider, err = aws.Default()
 	case "vultr":
-		provider, err = vultr.NewDNSProvider()
+		provider, err = vultr.Default()
 	default:
 		err = fmt.Errorf("Unrecognised DNS provider: %s", name)
 	}

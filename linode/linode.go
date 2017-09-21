@@ -9,7 +9,7 @@ import (
 	"time"
 
 	dp "github.com/appscode/go-dns/provider"
-	"github.com/kelseyhightower/envconfig"
+	"github.com/appscode/envconfig"
 	"github.com/timewasted/linode/dns"
 	"github.com/xenolf/lego/acme"
 )
@@ -38,18 +38,18 @@ var _ dp.Provider = &DNSProvider{}
 
 // NewDNSProvider returns a DNSProvider instance configured for Linode.
 // Credentials must be passed in the environment variable: LINODE_API_KEY.
-func NewDNSProvider() (*DNSProvider, error) {
+func Default() (*DNSProvider, error) {
 	var opt Options
 	err := envconfig.Process("", &opt)
 	if err != nil {
 		return nil, err
 	}
-	return NewDNSProviderCredentials(opt)
+	return New(opt)
 }
 
 // NewDNSProviderCredentials uses the supplied credentials to return a
 // DNSProvider instance configured for Linode.
-func NewDNSProviderCredentials(opt Options) (*DNSProvider, error) {
+func New(opt Options) (*DNSProvider, error) {
 	if len(opt.ApiKey) == 0 {
 		return nil, errors.New("Linode credentials missing")
 	}

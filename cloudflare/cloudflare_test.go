@@ -33,7 +33,7 @@ func restoreCloudFlareEnv() {
 func TestNewDNSProviderValid(t *testing.T) {
 	os.Setenv("CLOUDFLARE_EMAIL", "")
 	os.Setenv("CLOUDFLARE_API_KEY", "")
-	_, err := NewDNSProviderCredentials(Options{
+	_, err := New(Options{
 		Email:  "123",
 		APIKey: "123",
 	})
@@ -44,7 +44,7 @@ func TestNewDNSProviderValid(t *testing.T) {
 func TestNewDNSProviderValidEnv(t *testing.T) {
 	os.Setenv("CLOUDFLARE_EMAIL", "test@example.com")
 	os.Setenv("CLOUDFLARE_API_KEY", "123")
-	_, err := NewDNSProvider()
+	_, err := Default()
 	assert.NoError(t, err)
 	restoreCloudFlareEnv()
 }
@@ -52,7 +52,7 @@ func TestNewDNSProviderValidEnv(t *testing.T) {
 func TestNewDNSProviderMissingCredErr(t *testing.T) {
 	os.Setenv("CLOUDFLARE_EMAIL", "")
 	os.Setenv("CLOUDFLARE_API_KEY", "")
-	_, err := NewDNSProvider()
+	_, err := Default()
 	assert.EqualError(t, err, "CloudFlare credentials missing")
 	restoreCloudFlareEnv()
 }
@@ -62,7 +62,7 @@ func TestCloudFlareEnsureARecord(t *testing.T) {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProviderCredentials(Options{
+	provider, err := New(Options{
 		Email:  cflareEmail,
 		APIKey: cflareAPIKey,
 	})
@@ -77,7 +77,7 @@ func TestCloudFlareDeleteARecords(t *testing.T) {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProviderCredentials(Options{
+	provider, err := New(Options{
 		Email:  cflareEmail,
 		APIKey: cflareAPIKey,
 	})
@@ -92,7 +92,7 @@ func TestCloudFlareDeleteARecord(t *testing.T) {
 		t.Skip("skipping live test")
 	}
 
-	provider, err := NewDNSProviderCredentials(Options{
+	provider, err := New(Options{
 		Email:  cflareEmail,
 		APIKey: cflareAPIKey,
 	})
