@@ -3,6 +3,7 @@ package dns
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/appscode/go-dns/aws"
 	"github.com/appscode/go-dns/azure"
@@ -17,14 +18,14 @@ import (
 func Default(name string) (dp.Provider, error) {
 	var err error
 	var provider dp.Provider
-	switch name {
+	switch strings.ToLower(name) {
 	case "azure":
 		provider, err = azure.Default()
 	case "cloudflare":
 		provider, err = cloudflare.Default()
 	case "digitalocean":
 		provider, err = digitalocean.Default()
-	case "gcloud":
+	case "gcloud", "googlecloud", "gce", "gke":
 		provider, err = googlecloud.Default()
 	case "linode":
 		provider, err = linode.Default()
@@ -33,7 +34,7 @@ func Default(name string) (dp.Provider, error) {
 	case "vultr":
 		provider, err = vultr.Default()
 	default:
-		err = fmt.Errorf("Unrecognised DNS provider: %s", name)
+		err = fmt.Errorf("unrecognised DNS provider: %s", name)
 	}
 	return provider, err
 }
