@@ -1,15 +1,15 @@
 hash: d917cad023d40e300e753c9c72a9a8b00ac04831ef4af836e65eb7e15134dcfb
-updated: 2017-09-21T12:25:27.975761464-07:00
+updated: 2018-03-15T18:44:51.227426979Z
 imports:
 - name: cloud.google.com/go
-  version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
+  version: 44b3a7d2be2df066b6625227cf4e4988d35a2cd1
   subpackages:
   - compute/metadata
   - internal
 - name: github.com/appscode/envconfig
-  version: 8debe51c027cc6d944705e16415fd948cb32824c
+  version: 183bbe643a2875eaa69c85627ac6b25813983203
 - name: github.com/appscode/go
-  version: 40c185ab12c60de0218e5e5c319a032498c21695
+  version: f8f2e1c7d2d10789cdd0540468b487d14421dbf9
   subpackages:
   - strings
 - name: github.com/aws/aws-sdk-go
@@ -61,9 +61,9 @@ imports:
   subpackages:
   - context
 - name: github.com/go-ini/ini
-  version: 2e44421e256d82ebbf3d4d4fcabe8930b905eff3
+  version: 300e940a926eb277d3901b20bdfcc54928ad3642
 - name: github.com/golang/protobuf
-  version: 4bd1920723d7b7c925de087aa32e2187708897f7
+  version: 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9
   subpackages:
   - proto
 - name: github.com/google/go-querystring
@@ -71,17 +71,17 @@ imports:
   subpackages:
   - query
 - name: github.com/JamesClonk/vultr
-  version: 2fd0705ce648e602e6c9c57329a174270a4f6688
+  version: fa1c0367800db75e4d10d0ec90c49a8731670224
   subpackages:
   - lib
 - name: github.com/jmespath/go-jmespath
-  version: 3433f3ea46d9f8019119e7dd41274e112a2359a9
+  version: 0b12d6b521d83fc7f755e7cfc1b1fbdd35a01a74
 - name: github.com/juju/ratelimit
   version: 77ed1c8a01217656d2080ad51981f6e99adaa177
 - name: github.com/kelseyhightower/envconfig
   version: f611eb38b3875cc3bd991ca91c51d06446afa14c
 - name: github.com/miekg/dns
-  version: 5d001d020961ae1c184f9f8152fdc73810481677
+  version: 5b169d1842fbc764c22df259de0a17085c48d8c2
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/sirupsen/logrus
@@ -93,20 +93,27 @@ imports:
   subpackages:
   - dns
 - name: github.com/xenolf/lego
-  version: c6958564222a0451a58df1b4ecb5bc5da4e03aff
+  version: 2a44f405473b07ef68f2dd77826193582c293fa5
   repo: https://github.com/appscode/lego.git
   vcs: git
   subpackages:
   - acme
 - name: golang.org/x/crypto
-  version: d172538b2cfce0c13cee31e647d0367aa8cd2486
+  version: 81e90905daefcd6fd217b62423c0908922eadb30
   subpackages:
+  - ed25519
+  - ed25519/internal/edwards25519
   - ocsp
 - name: golang.org/x/net
-  version: f2499483f923065a842d38eb4c7f1927e6fc6e6d
+  version: 1c05540f6879653db88113bc4a2b70aec4bd491f
   subpackages:
+  - bpf
   - context
   - context/ctxhttp
+  - internal/iana
+  - internal/socket
+  - ipv4
+  - ipv6
   - publicsuffix
 - name: golang.org/x/oauth2
   version: a6bd8cefa1811bd24b86f8902872e4e8225f74c4
@@ -116,14 +123,14 @@ imports:
   - jws
   - jwt
 - name: google.golang.org/api
-  version: e3824ed33c72bf7e81da0286772c34b987520914
+  version: c24aa0e5ed34558ea50c016e4fb92c5e9aa69f2c
   subpackages:
   - dns/v1
   - gensupport
   - googleapi
   - googleapi/internal/uritemplates
 - name: google.golang.org/appengine
-  version: 12d5545dc1cfa6047a286d5e853841b6471f4c19
+  version: 5bee14b453b4c71be47ec1781b0fa61c2ea182db
   subpackages:
   - internal
   - internal/app_identity
