@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/appscode/go-dns/aws"
+	"github.com/appscode/go-dns/digitalocean"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,31 +15,27 @@ var (
 )
 
 func init() {
-	apiSecret = os.Getenv("EXOSCALE_API_SECRET")
-	apiKey = os.Getenv("EXOSCALE_API_KEY")
+	apiKey = os.Getenv("DO_AUTH_TOKEN")
 }
 
 func restoreExoscaleEnv() {
-	os.Setenv("EXOSCALE_API_KEY", apiKey)
-	os.Setenv("EXOSCALE_API_SECRET", apiSecret)
+	os.Setenv("DO_AUTH_TOKEN", apiKey)
 }
 
 func TestKnownDNSProviderSuccess(t *testing.T) {
-	os.Setenv("EXOSCALE_API_KEY", "abc")
-	os.Setenv("EXOSCALE_API_SECRET", "123")
-	provider, err := Default("exoscale")
+	os.Setenv("DO_AUTH_TOKEN", "abc")
+	provider, err := Default("digitalocean")
 	assert.NoError(t, err)
 	assert.NotNil(t, provider)
-	if reflect.TypeOf(provider) != reflect.TypeOf(&aws.DNSProvider{}) {
-		t.Errorf("Not loaded correct DNS proviver: %v is not *exoscale.DNSProvider", reflect.TypeOf(provider))
+	if reflect.TypeOf(provider) != reflect.TypeOf(&digitalocean.DNSProvider{}) {
+		t.Errorf("Not loaded correct DNS proviver: %v is not *digitalocean.DNSProvider", reflect.TypeOf(provider))
 	}
 	restoreExoscaleEnv()
 }
 
 func TestKnownDNSProviderError(t *testing.T) {
-	os.Setenv("EXOSCALE_API_KEY", "")
-	os.Setenv("EXOSCALE_API_SECRET", "")
-	_, err := Default("exoscale")
+	os.Setenv("DO_AUTH_TOKEN", "")
+	_, err := Default("digitalocean")
 	assert.Error(t, err)
 	restoreExoscaleEnv()
 }
