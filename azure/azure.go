@@ -4,19 +4,20 @@
 package azure
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/dns"
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2017-09-01/dns"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
-	dp "github.com/appscode/go-dns/provider"
 	"github.com/appscode/envconfig"
+	dp "github.com/appscode/go-dns/provider"
 	"github.com/xenolf/lego/acme"
 )
 
@@ -73,7 +74,7 @@ func (c *DNSProvider) EnsureARecord(domain string, ip string) error {
 	rsc := dns.NewRecordSetsClient(c.opt.SubscriptionId)
 	rsc.Authorizer = autorest.NewBearerAuthorizer(spt)
 	relative := toRelativeRecord(fqdn, acme.ToFqdn(zone))
-	rs, err := rsc.Get(c.opt.ResourceGroup, zone, relative, "A")
+	rs, err := rsc.Get(context.TODO(), c.opt.ResourceGroup, zone, relative, "A")
 	found, err := c.checkResourceExistsFromError(err)
 	if err != nil {
 		return err
@@ -100,7 +101,7 @@ func (c *DNSProvider) EnsureARecord(domain string, ip string) error {
 			ARecords: &records,
 		},
 	}
-	_, err = rsc.CreateOrUpdate(c.opt.ResourceGroup, zone, relative, dns.A, rec, "", "")
+	_, err = rsc.CreateOrUpdate(context.TODO(), c.opt.ResourceGroup, zone, relative, dns.A, rec, "", "")
 	return err
 }
 
@@ -115,7 +116,7 @@ func (c *DNSProvider) DeleteARecords(domain string) error {
 	rsc := dns.NewRecordSetsClient(c.opt.SubscriptionId)
 	rsc.Authorizer = autorest.NewBearerAuthorizer(spt)
 	relative := toRelativeRecord(fqdn, acme.ToFqdn(zone))
-	_, err = rsc.Delete(c.opt.ResourceGroup, zone, relative, "A", "")
+	_, err = rsc.Delete(context.TODO(), c.opt.ResourceGroup, zone, relative, "A", "")
 
 	//resp, err := rsc.ListByType(c.resourceGroup, zone, "A", nil)
 	//if err != nil {
@@ -139,7 +140,7 @@ func (c *DNSProvider) DeleteARecord(domain string, ip string) error {
 	rsc.Authorizer = autorest.NewBearerAuthorizer(spt)
 	relative := toRelativeRecord(fqdn, acme.ToFqdn(zone))
 
-	rs, err := rsc.Get(c.opt.ResourceGroup, zone, relative, "A")
+	rs, err := rsc.Get(context.TODO(), c.opt.ResourceGroup, zone, relative, "A")
 	if found, err := c.checkResourceExistsFromError(err); err != nil {
 		return err
 	} else if !found {
@@ -161,10 +162,10 @@ func (c *DNSProvider) DeleteARecord(domain string, ip string) error {
 		return nil
 	}
 	if len(updatedRecords) == 0 { // if all records matched, delete the recordset
-		_, err = rsc.Delete(c.opt.ResourceGroup, zone, relative, "A", "")
+		_, err = rsc.Delete(context.TODO(), c.opt.ResourceGroup, zone, relative, "A", "")
 	} else { // update the recordset with new list
 		rs.ARecords = &updatedRecords
-		_, err = rsc.Update(c.opt.ResourceGroup, zone, relative, "A", rs, "")
+		_, err = rsc.Update(context.TODO(), c.opt.ResourceGroup, zone, relative, "A", rs, "")
 	}
 	return err
 }
@@ -187,7 +188,7 @@ func (c *DNSProvider) getHostedZoneID(fqdn string) (string, error) {
 	spt, err := c.newServicePrincipalTokenFromCredentials(azure.PublicCloud.ResourceManagerEndpoint)
 	dc := dns.NewZonesClient(c.opt.SubscriptionId)
 	dc.Authorizer = autorest.NewBearerAuthorizer(spt)
-	zone, err := dc.Get(c.opt.ResourceGroup, acme.UnFqdn(authZone))
+	zone, err := dc.Get(context.TODO(), c.opt.ResourceGroup, acme.UnFqdn(authZone))
 
 	if err != nil {
 		return "", err
