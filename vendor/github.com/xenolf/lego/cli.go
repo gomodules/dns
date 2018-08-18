@@ -4,38 +4,23 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path"
-	"strings"
 	"text/tabwriter"
 
 	"github.com/urfave/cli"
 	"github.com/xenolf/lego/acme"
+	"github.com/xenolf/lego/log"
 )
 
-// Logger is used to log errors; if nil, the default log.Logger is used.
-var Logger *log.Logger
-
-// logger is an helper function to retrieve the available logger
-func logger() *log.Logger {
-	if Logger == nil {
-		Logger = log.New(os.Stderr, "", log.LstdFlags)
-	}
-	return Logger
-}
-
-var gittag string
+var (
+	version = "dev"
+)
 
 func main() {
 	app := cli.NewApp()
 	app.Name = "lego"
 	app.Usage = "Let's Encrypt client written in Go"
-
-	version := "0.4.1"
-	if strings.HasPrefix(gittag, "v") {
-		version = gittag
-	}
 
 	app.Version = version
 
@@ -49,7 +34,7 @@ func main() {
 
 	app.Before = func(c *cli.Context) error {
 		if c.GlobalString("path") == "" {
-			logger().Fatal("Could not determine current working directory. Please pass --path.")
+			log.Fatal("Could not determine current working directory. Please pass --path.")
 		}
 		return nil
 	}
@@ -117,7 +102,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "server, s",
-			Value: "https://acme-v01.api.letsencrypt.org/directory",
+			Value: "https://acme-v02.api.letsencrypt.org/directory",
 			Usage: "CA hostname (and optionally :port). The server certificate must be trusted in order to avoid further modifications to the client.",
 		},
 		cli.StringFlag{
@@ -127,6 +112,18 @@ func main() {
 		cli.BoolFlag{
 			Name:  "accept-tos, a",
 			Usage: "By setting this flag to true you indicate that you accept the current Let's Encrypt terms of service.",
+		},
+		cli.BoolFlag{
+			Name:  "eab",
+			Usage: "Use External Account Binding for account registration. Requires --kid and --hmac.",
+		},
+		cli.StringFlag{
+			Name:  "kid",
+			Usage: "Key identifier from External CA. Used for External Account Binding.",
+		},
+		cli.StringFlag{
+			Name:  "hmac",
+			Usage: "MAC key from External CA. Should be in Base64 URL Encoding without padding format. Used for External Account Binding.",
 		},
 		cli.StringFlag{
 			Name:  "key-type, k",
@@ -140,7 +137,7 @@ func main() {
 		},
 		cli.StringSliceFlag{
 			Name:  "exclude, x",
-			Usage: "Explicitly disallow solvers by name from being used. Solvers: \"http-01\", \"tls-sni-01\".",
+			Usage: "Explicitly disallow solvers by name from being used. Solvers: \"http-01\", \"dns-01\", \"tls-alpn-01\".",
 		},
 		cli.StringFlag{
 			Name:  "webroot",
@@ -172,7 +169,7 @@ func main() {
 		},
 		cli.StringSliceFlag{
 			Name:  "dns-resolvers",
-			Usage: "Set the resolvers to use for performing recursive DNS queries. Supported: host:port. The default is to use Google's DNS resolvers.",
+			Usage: "Set the resolvers to use for performing recursive DNS queries. Supported: host:port. The default is to use the system resolvers, or Google's DNS resolvers if the system's cannot be determined.",
 		},
 		cli.BoolFlag{
 			Name:  "pem",
@@ -201,27 +198,39 @@ Here is an example bash command using the CloudFlare DNS provider:
 	w := tabwriter.NewWriter(os.Stdout, 0, 8, 1, '\t', 0)
 	fmt.Fprintln(w, "Valid providers and their associated credential environment variables:")
 	fmt.Fprintln(w)
+	fmt.Fprintln(w, "\tacme-dns:\tACME_DNS_API_BASE, ACME_DNS_STORAGE_PATH")
 	fmt.Fprintln(w, "\tazure:\tAZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_SUBSCRIPTION_ID, AZURE_TENANT_ID, AZURE_RESOURCE_GROUP")
 	fmt.Fprintln(w, "\tauroradns:\tAURORA_USER_ID, AURORA_KEY, AURORA_ENDPOINT")
+	fmt.Fprintln(w, "\tbluecat:\tBLUECAT_SERVER_URL, BLUECAT_USER_NAME, BLUECAT_PASSWORD, BLUECAT_CONFIG_NAME, BLUECAT_DNS_VIEW")
+	fmt.Fprintln(w, "\tcloudxns:\tCLOUDXNS_API_KEY, CLOUDXNS_SECRET_KEY")
 	fmt.Fprintln(w, "\tcloudflare:\tCLOUDFLARE_EMAIL, CLOUDFLARE_API_KEY")
 	fmt.Fprintln(w, "\tdigitalocean:\tDO_AUTH_TOKEN")
 	fmt.Fprintln(w, "\tdnsimple:\tDNSIMPLE_EMAIL, DNSIMPLE_OAUTH_TOKEN")
 	fmt.Fprintln(w, "\tdnsmadeeasy:\tDNSMADEEASY_API_KEY, DNSMADEEASY_API_SECRET")
+	fmt.Fprintln(w, "\tduckdns:\tDUCKDNS_TOKEN")
 	fmt.Fprintln(w, "\texoscale:\tEXOSCALE_API_KEY, EXOSCALE_API_SECRET, EXOSCALE_ENDPOINT")
 	fmt.Fprintln(w, "\tgandi:\tGANDI_API_KEY")
+	fmt.Fprintln(w, "\tgandiv5:\tGANDIV5_API_KEY")
 	fmt.Fprintln(w, "\tgcloud:\tGCE_PROJECT, GCE_SERVICE_ACCOUNT_FILE")
+	fmt.Fprintln(w, "\tglesys:\tGLESYS_API_USER, GLESYS_API_KEY")
 	fmt.Fprintln(w, "\tlinode:\tLINODE_API_KEY")
+	fmt.Fprintln(w, "\tlightsail:\tAWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, DNS_ZONE")
 	fmt.Fprintln(w, "\tmanual:\tnone")
 	fmt.Fprintln(w, "\tnamecheap:\tNAMECHEAP_API_USER, NAMECHEAP_API_KEY")
+	fmt.Fprintln(w, "\tnamedotcom:\tNAMECOM_USERNAME, NAMECOM_API_TOKEN")
+	fmt.Fprintln(w, "\tnifcloud:\tNIFCLOUD_ACCESS_KEY_ID, NIFCLOUD_SECRET_ACCESS_KEY")
 	fmt.Fprintln(w, "\trackspace:\tRACKSPACE_USER, RACKSPACE_API_KEY")
 	fmt.Fprintln(w, "\trfc2136:\tRFC2136_TSIG_KEY, RFC2136_TSIG_SECRET,\n\t\tRFC2136_TSIG_ALGORITHM, RFC2136_NAMESERVER")
 	fmt.Fprintln(w, "\troute53:\tAWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_HOSTED_ZONE_ID")
 	fmt.Fprintln(w, "\tdyn:\tDYN_CUSTOMER_NAME, DYN_USER_NAME, DYN_PASSWORD")
+	fmt.Fprintln(w, "\tvegadns:\tSECRET_VEGADNS_KEY, SECRET_VEGADNS_SECRET, VEGADNS_URL")
 	fmt.Fprintln(w, "\tvultr:\tVULTR_API_KEY")
 	fmt.Fprintln(w, "\tovh:\tOVH_ENDPOINT, OVH_APPLICATION_KEY, OVH_APPLICATION_SECRET, OVH_CONSUMER_KEY")
 	fmt.Fprintln(w, "\tpdns:\tPDNS_API_KEY, PDNS_API_URL")
 	fmt.Fprintln(w, "\tdnspod:\tDNSPOD_API_KEY")
 	fmt.Fprintln(w, "\totc:\tOTC_USER_NAME, OTC_PASSWORD, OTC_PROJECT_NAME, OTC_DOMAIN_NAME, OTC_IDENTITY_ENDPOINT")
+	fmt.Fprintln(w, "\tsakuracloud:\tSAKURACLOUD_ACCESS_TOKEN, SAKURACLOUD_ACCESS_TOKEN_SECRET")
+	fmt.Fprintln(w, "\texec:\tEXEC_PATH, EXEC_MODE")
 	w.Flush()
 
 	fmt.Println(`
