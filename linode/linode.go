@@ -10,8 +10,13 @@ import (
 
 	dp "github.com/appscode/go-dns/provider"
 	"github.com/appscode/envconfig"
-	"github.com/timewasted/linode/dns"
+	"github.com/linode/linodego"
 	"github.com/xenolf/lego/acme"
+	"golang.org/x/oauth2"
+	"net/http"
+	"context"
+	"encoding/json"
+	"fmt"
 )
 
 const (
@@ -27,7 +32,7 @@ type hostedZoneInfo struct {
 
 // DNSProvider implements the acme.ChallengeProvider interface.
 type DNSProvider struct {
-	linode *dns.DNS
+	linode *linodego.Client
 }
 
 type Options struct {
@@ -54,8 +59,18 @@ func New(opt Options) (*DNSProvider, error) {
 		return nil, errors.New("Linode credentials missing")
 	}
 
+	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{
+		AccessToken: opt.ApiKey,
+	})
+
+	oauth2Client := &http.Client{
+		Transport: &oauth2.Transport{
+			Source: tokenSource,
+		},
+	}
+	client := linodego.NewClient(oauth2Client)
 	return &DNSProvider{
-		linode: dns.New(opt.ApiKey),
+		linode: &client,
 	}, nil
 }
 
@@ -82,7 +97,12 @@ func (p *DNSProvider) EnsureARecord(domain string, ip string) error {
 		return err
 	}
 
-	records, err := p.linode.GetResourcesByType(zone.domainId, "A")
+	jsonFilter, err := json.Marshal(map[string]string{"type": "A"})
+	if err != nil {
+		return err
+	}
+
+	records, err := p.linode.ListDomainRecords(context.TODO(), zone.domainId, linodego.NewListOptions(0, string(jsonFilter)))
 	if err != nil {
 		return err
 	}
@@ -92,7 +112,12 @@ func (p *DNSProvider) EnsureARecord(domain string, ip string) error {
 			return nil
 		}
 	}
-	_, err = p.linode.CreateDomainResourceA(zone.domainId, zone.resourceName, ip, 300)
+	_, err = p.linode.CreateDomainRecord(context.TODO(), zone.domainId, linodego.DomainRecordCreateOptions{
+		Type: "A",
+		Target: ip,
+		Name:  zone.resourceName,
+		TTLSec: 300,
+	})
 	return err
 }
 
@@ -102,13 +127,18 @@ func (p *DNSProvider) DeleteARecords(domain string) error {
 		return err
 	}
 
-	records, err := p.linode.GetResourcesByType(zone.domainId, "A")
+	jsonFilter, err := json.Marshal(map[string]string{"type": "A"})
+	if err != nil {
+		return err
+	}
+
+	records, err := p.linode.ListDomainRecords(context.TODO(), zone.domainId, linodego.NewListOptions(0, string(jsonFilter)))
 	if err != nil {
 		return err
 	}
 	for _, record := range records {
 		if record.Type == "A" && record.Name == zone.resourceName {
-			_, err = p.linode.DeleteDomainResource(record.DomainID, record.ResourceID)
+			 err = p.linode.DeleteDomainRecord(context.TODO(), zone.domainId, record.ID)
 			if err != nil {
 				return err
 			}
@@ -123,13 +153,18 @@ func (p *DNSProvider) DeleteARecord(domain string, ip string) error {
 		return err
 	}
 
-	records, err := p.linode.GetResourcesByType(zone.domainId, "A")
+	jsonFilter, err := json.Marshal(map[string]string{"type": "A"})
+	if err != nil {
+		return err
+	}
+
+	records, err := p.linode.ListDomainRecords(context.TODO(), zone.domainId, linodego.NewListOptions(0, string(jsonFilter)))
 	if err != nil {
 		return err
 	}
 	for _, record := range records {
 		if record.Type == "A" && record.Name == zone.resourceName && record.Target == ip {
-			_, err = p.linode.DeleteDomainResource(record.DomainID, record.ResourceID)
+			err = p.linode.DeleteDomainRecord(context.TODO(), zone.domainId, record.ID)
 			if err != nil {
 				return err
 			}
@@ -146,14 +181,21 @@ func (p *DNSProvider) getHostedZoneInfo(fqdn string) (*hostedZoneInfo, error) {
 	}
 	resourceName := strings.TrimSuffix(fqdn, "."+authZone)
 
-	// Query the authority zone.
-	domain, err := p.linode.GetDomain(acme.UnFqdn(authZone))
+	jsonFilter, err := json.Marshal(map[string]string{"domain": acme.UnFqdn(authZone)})
 	if err != nil {
 		return nil, err
 	}
+	// Query the authority zone.
+	domains, err := p.linode.ListDomains(context.TODO(), linodego.NewListOptions(0, string(jsonFilter)))
+	if err != nil {
+		return nil, err
+	}
+	if len(domains) == 0 {
+		return nil, fmt.Errorf("domain %s not found", fqdn)
+	}
 
 	return &hostedZoneInfo{
-		domainId:     domain.DomainID,
+		domainId:     domains[0].ID,
 		resourceName: resourceName,
 	}, nil
 }
