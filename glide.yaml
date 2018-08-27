@@ -19,7 +19,8 @@ import:
   version: v1.0.7
 - package: github.com/sirupsen/logrus
   version: v1.0.3
-- package: github.com/timewasted/linode
+- package: github.com/linode/linodego
+  version: v0.3.0
 - package: github.com/xenolf/lego
   repo: https://github.com/appscode/lego.git
   vcs: git
