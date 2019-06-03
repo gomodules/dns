@@ -16,9 +16,9 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/appscode/envconfig"
-	dp "github.com/appscode/go-dns/provider"
 	"github.com/xenolf/lego/acme"
+	dp "gomodules.xyz/dns/provider"
+	"gomodules.xyz/envconfig"
 )
 
 // DNSProvider is an implementation of the acme.ChallengeProvider interface

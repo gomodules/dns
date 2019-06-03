@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/appscode/go-dns/digitalocean"
 	"github.com/stretchr/testify/assert"
+	"gomodules.xyz/dns/digitalocean"
 )
 
 var (

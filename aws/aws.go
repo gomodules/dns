@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	dp "github.com/appscode/go-dns/provider"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -19,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/xenolf/lego/acme"
+	dp "gomodules.xyz/dns/provider"
 )
 
 const (

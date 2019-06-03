@@ -2,7 +2,7 @@
 set -eou pipefail
 
 GOPATH=$(go env GOPATH)
-REPO_ROOT="$GOPATH/src/github.com/appscode/go-dns"
+REPO_ROOT="$GOPATH/src/gomodules.xyz/dns"
 
 pushd $REPO_ROOT
 

@@ -9,11 +9,11 @@ import (
 	"log"
 	"strings"
 
-	dp "github.com/appscode/go-dns/provider"
 	"github.com/digitalocean/godo"
-	"github.com/appscode/envconfig"
 	"github.com/xenolf/lego/acme"
 	"golang.org/x/oauth2"
+	dp "gomodules.xyz/dns/provider"
+	"gomodules.xyz/envconfig"
 )
 
 // DNSProvider is an implementation of the acme.ChallengeProvider interface

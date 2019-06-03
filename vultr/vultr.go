@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	vultr "github.com/JamesClonk/vultr/lib"
-	dp "github.com/appscode/go-dns/provider"
-	"github.com/appscode/envconfig"
 	"github.com/xenolf/lego/acme"
+	dp "gomodules.xyz/dns/provider"
+	"gomodules.xyz/envconfig"
 )
 
 // DNSProvider is an implementation of the acme.ChallengeProvider interface.

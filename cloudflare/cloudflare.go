@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"time"
 
-	dp "github.com/appscode/go-dns/provider"
 	cf "github.com/cloudflare/cloudflare-go"
-	"github.com/appscode/envconfig"
 	"github.com/xenolf/lego/acme"
+	dp "gomodules.xyz/dns/provider"
+	"gomodules.xyz/envconfig"
 )
 
 // DNSProvider is an implementation of the acme.ChallengeProvider interface

@@ -1,4 +1,4 @@
-[![Go Report Card](https://goreportcard.com/badge/github.com/appscode/go-dns)](https://goreportcard.com/report/github.com/appscode/go-dns)
+[![Go Report Card](https://goreportcard.com/badge/gomodules.xyz/dns)](https://goreportcard.com/report/gomodules.xyz/dns)
 [![Build Status](https://travis-ci.org/appscode/go-dns.svg?branch=master)](https://travis-ci.org/appscode/go-dns)
 [![codecov](https://codecov.io/gh/appscode/go-dns/branch/master/graph/badge.svg)](https://codecov.io/gh/appscode/go-dns)
 [![Docker Pulls](https://img.shields.io/docker/pulls/appscode/go-dns.svg)](https://hub.docker.com/r/appscode/go-dns/)
@@ -6,7 +6,7 @@
 [![Twitter](https://img.shields.io/twitter/follow/appscodehq.svg?style=social&logo=twitter&label=Follow)](https://twitter.com/intent/follow?screen_name=AppsCodeHQ)
 
 # go-dns
-Unified DNS API client for GOlang. See here for the documentation of [common provider interface](https://godoc.org/github.com/appscode/go-dns/provider).
+Unified DNS API client for GOlang. See here for the documentation of [common provider interface](https://godoc.org/gomodules.xyz/dns/provider).
 ```go
 type Provider interface {
 	EnsureARecord(domain string, ip string) error

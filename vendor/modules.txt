@@ -1,0 +1,120 @@
+# cloud.google.com/go v0.2.0
+cloud.google.com/go/compute/metadata
+cloud.google.com/go/internal
+# github.com/Azure/azure-sdk-for-go v14.6.0+incompatible
+github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2017-09-01/dns
+github.com/Azure/azure-sdk-for-go/version
+# github.com/Azure/go-autorest v10.6.2+incompatible
+github.com/Azure/go-autorest/autorest
+github.com/Azure/go-autorest/autorest/adal
+github.com/Azure/go-autorest/autorest/azure
+github.com/Azure/go-autorest/autorest/to
+github.com/Azure/go-autorest/autorest/date
+# github.com/JamesClonk/vultr v0.0.0-20180805100820-267be0d362b6
+github.com/JamesClonk/vultr/lib
+# github.com/appscode/go v0.0.0-20180628092646-df3c57fca2be
+github.com/appscode/go/strings
+# github.com/aws/aws-sdk-go v1.12.7
+github.com/aws/aws-sdk-go/aws
+github.com/aws/aws-sdk-go/aws/client
+github.com/aws/aws-sdk-go/aws/credentials
+github.com/aws/aws-sdk-go/aws/credentials/stscreds
+github.com/aws/aws-sdk-go/aws/request
+github.com/aws/aws-sdk-go/aws/session
+github.com/aws/aws-sdk-go/service/route53
+github.com/aws/aws-sdk-go/aws/awserr
+github.com/aws/aws-sdk-go/aws/endpoints
+github.com/aws/aws-sdk-go/aws/client/metadata
+github.com/aws/aws-sdk-go/internal/shareddefaults
+github.com/aws/aws-sdk-go/service/sts
+github.com/aws/aws-sdk-go/aws/awsutil
+github.com/aws/aws-sdk-go/aws/corehandlers
+github.com/aws/aws-sdk-go/aws/defaults
+github.com/aws/aws-sdk-go/aws/signer/v4
+github.com/aws/aws-sdk-go/private/protocol/restxml
+github.com/aws/aws-sdk-go/private/protocol/query
+github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds
+github.com/aws/aws-sdk-go/aws/credentials/endpointcreds
+github.com/aws/aws-sdk-go/aws/ec2metadata
+github.com/aws/aws-sdk-go/private/protocol/rest
+github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
+github.com/aws/aws-sdk-go/private/protocol/query/queryutil
+github.com/aws/aws-sdk-go/private/protocol
+# github.com/cloudflare/cloudflare-go v0.8.0
+github.com/cloudflare/cloudflare-go
+# github.com/davecgh/go-spew v1.1.0
+github.com/davecgh/go-spew/spew
+# github.com/dgrijalva/jwt-go v0.0.0-20160705203006-01aeca54ebda
+github.com/dgrijalva/jwt-go
+# github.com/digitalocean/godo v1.1.0
+github.com/digitalocean/godo
+github.com/digitalocean/godo/context
+# github.com/go-ini/ini v1.25.4
+github.com/go-ini/ini
+# github.com/golang/protobuf v1.2.0
+github.com/golang/protobuf/proto
+# github.com/google/go-querystring v0.0.0-20170111101155-53e6ce116135
+github.com/google/go-querystring/query
+# github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8
+github.com/jmespath/go-jmespath
+# github.com/juju/ratelimit v0.0.0-20151125201925-77ed1c8a0121
+github.com/juju/ratelimit
+# github.com/linode/linodego v0.9.0
+github.com/linode/linodego
+# github.com/miekg/dns v1.0.7
+github.com/miekg/dns
+# github.com/pkg/errors v0.8.0
+github.com/pkg/errors
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
+# github.com/stretchr/testify v1.3.0
+github.com/stretchr/testify/assert
+# github.com/tent/http-link-go v0.0.0-20130702225549-ac974c61c2f9
+github.com/tent/http-link-go
+# github.com/xenolf/lego v2.6.0+incompatible => github.com/appscode/lego v1.0.2-0.20180815012227-0b6736776fb2
+github.com/xenolf/lego/acme
+github.com/xenolf/lego/log
+# golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
+golang.org/x/crypto/ocsp
+golang.org/x/crypto/ed25519
+golang.org/x/crypto/pbkdf2
+golang.org/x/crypto/ed25519/internal/edwards25519
+# golang.org/x/net v0.0.0-20190311183353-d8887717615a
+golang.org/x/net/context
+golang.org/x/net/publicsuffix
+golang.org/x/net/context/ctxhttp
+golang.org/x/net/ipv4
+golang.org/x/net/ipv6
+golang.org/x/net/bpf
+golang.org/x/net/internal/iana
+golang.org/x/net/internal/socket
+# golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be
+golang.org/x/oauth2
+golang.org/x/oauth2/google
+golang.org/x/oauth2/internal
+golang.org/x/oauth2/jws
+golang.org/x/oauth2/jwt
+# gomodules.xyz/envconfig v1.3.0
+gomodules.xyz/envconfig
+# google.golang.org/api v0.0.0-20180826000528-7954115fcf34
+google.golang.org/api/dns/v1
+google.golang.org/api/gensupport
+google.golang.org/api/googleapi
+google.golang.org/api/googleapi/internal/uritemplates
+# google.golang.org/appengine v1.1.0
+google.golang.org/appengine
+google.golang.org/appengine/urlfetch
+google.golang.org/appengine/internal
+google.golang.org/appengine/internal/app_identity
+google.golang.org/appengine/internal/modules
+google.golang.org/appengine/internal/urlfetch
+google.golang.org/appengine/internal/base
+google.golang.org/appengine/internal/datastore
+google.golang.org/appengine/internal/log
+google.golang.org/appengine/internal/remote_api
+# gopkg.in/resty.v1 v1.9.1
+gopkg.in/resty.v1
+# gopkg.in/square/go-jose.v2 v2.3.1
+gopkg.in/square/go-jose.v2
+gopkg.in/square/go-jose.v2/cipher
+gopkg.in/square/go-jose.v2/json

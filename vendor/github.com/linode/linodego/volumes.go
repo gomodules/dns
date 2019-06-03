@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-
-	"github.com/go-resty/resty"
 )
 
 // VolumeStatus indicates the status of the Volume
@@ -31,17 +29,19 @@ type Volume struct {
 	CreatedStr string `json:"created"`
 	UpdatedStr string `json:"updated"`
 
-	ID             int
-	Label          string
-	Status         VolumeStatus
-	Region         string
-	Size           int
-	LinodeID       *int      `json:"linode_id"`
-	FilesystemPath string    `json:"filesystem_path"`
-	Created        time.Time `json:"-"`
-	Updated        time.Time `json:"-"`
+	ID             int          `json:"id"`
+	Label          string       `json:"label"`
+	Status         VolumeStatus `json:"status"`
+	Region         string       `json:"region"`
+	Size           int          `json:"size"`
+	LinodeID       *int         `json:"linode_id"`
+	FilesystemPath string       `json:"filesystem_path"`
+	Tags           []string     `json:"tags"`
+	Created        time.Time    `json:"-"`
+	Updated        time.Time    `json:"-"`
 }
 
+// VolumeCreateOptions fields are those accepted by CreateVolume
 type VolumeCreateOptions struct {
 	Label    string `json:"label,omitempty"`
 	Region   string `json:"region,omitempty"`
@@ -49,8 +49,17 @@ type VolumeCreateOptions struct {
 	ConfigID int    `json:"config_id,omitempty"`
 	// The Volume's size, in GiB. Minimum size is 10GiB, maximum size is 10240GiB. A "0" value will result in the default size.
 	Size int `json:"size,omitempty"`
+	// An array of tags applied to this object. Tags are for organizational purposes only.
+	Tags []string `json:"tags"`
 }
 
+// VolumeUpdateOptions fields are those accepted by UpdateVolume
+type VolumeUpdateOptions struct {
+	Label string    `json:"label,omitempty"`
+	Tags  *[]string `json:"tags,omitempty"`
+}
+
+// VolumeAttachOptions fields are those accepted by AttachVolume
 type VolumeAttachOptions struct {
 	LinodeID int `json:"linode_id"`
 	ConfigID int `json:"config_id,omitempty"`
@@ -59,7 +68,26 @@ type VolumeAttachOptions struct {
 // VolumesPagedResponse represents a linode API response for listing of volumes
 type VolumesPagedResponse struct {
 	*PageOptions
-	Data []*Volume
+	Data []Volume `json:"data"`
+}
+
+// GetUpdateOptions converts a Volume to VolumeUpdateOptions for use in UpdateVolume
+func (v Volume) GetUpdateOptions() (updateOpts VolumeUpdateOptions) {
+	updateOpts.Label = v.Label
+	updateOpts.Tags = &v.Tags
+	return
+}
+
+// GetCreateOptions converts a Volume to VolumeCreateOptions for use in CreateVolume
+func (v Volume) GetCreateOptions() (createOpts VolumeCreateOptions) {
+	createOpts.Label = v.Label
+	createOpts.Tags = v.Tags
+	createOpts.Region = v.Region
+	createOpts.Size = v.Size
+	if v.LinodeID != nil && *v.LinodeID > 0 {
+		createOpts.LinodeID = *v.LinodeID
+	}
+	return
 }
 
 // endpoint gets the endpoint URL for Volume
@@ -73,20 +101,15 @@ func (VolumesPagedResponse) endpoint(c *Client) string {
 
 // appendData appends Volumes when processing paginated Volume responses
 func (resp *VolumesPagedResponse) appendData(r *VolumesPagedResponse) {
-	(*resp).Data = append(resp.Data, r.Data...)
-}
-
-// setResult sets the Resty response type of Volume
-func (VolumesPagedResponse) setResult(r *resty.Request) {
-	r.SetResult(VolumesPagedResponse{})
+	resp.Data = append(resp.Data, r.Data...)
 }
 
 // ListVolumes lists Volumes
-func (c *Client) ListVolumes(ctx context.Context, opts *ListOptions) ([]*Volume, error) {
+func (c *Client) ListVolumes(ctx context.Context, opts *ListOptions) ([]Volume, error) {
 	response := VolumesPagedResponse{}
 	err := c.listHelper(ctx, &response, opts)
-	for _, el := range response.Data {
-		el.fixDates()
+	for i := range response.Data {
+		response.Data[i].fixDates()
 	}
 	if err != nil {
 		return nil, err
@@ -139,6 +162,10 @@ func (c *Client) AttachVolume(ctx context.Context, id int, options *VolumeAttach
 		SetBody(body).
 		Post(e))
 
+	if err != nil {
+		return nil, err
+	}
+
 	return resp.Result().(*Volume).fixDates(), nil
 }
 
@@ -169,26 +196,37 @@ func (c *Client) CreateVolume(ctx context.Context, createOpts VolumeCreateOption
 }
 
 // RenameVolume renames the label of a Linode volume
-// There is no UpdateVolume because the label is the only alterable field.
+// DEPRECATED: use UpdateVolume
 func (c *Client) RenameVolume(ctx context.Context, id int, label string) (*Volume, error) {
-	body, _ := json.Marshal(map[string]string{"label": label})
+	updateOpts := VolumeUpdateOptions{Label: label}
+	return c.UpdateVolume(ctx, id, updateOpts)
+}
 
+// UpdateVolume updates the Volume with the specified id
+func (c *Client) UpdateVolume(ctx context.Context, id int, volume VolumeUpdateOptions) (*Volume, error) {
+	var body string
 	e, err := c.Volumes.Endpoint()
 	if err != nil {
-		return nil, NewError(err)
+		return nil, err
 	}
 	e = fmt.Sprintf("%s/%d", e, id)
 
-	resp, err := coupleAPIErrors(c.R(ctx).
-		SetResult(&Volume{}).
+	req := c.R(ctx).SetResult(&Volume{})
+
+	if bodyData, err := json.Marshal(volume); err == nil {
+		body = string(bodyData)
+	} else {
+		return nil, NewError(err)
+	}
+
+	r, err := coupleAPIErrors(req.
 		SetBody(body).
 		Put(e))
 
 	if err != nil {
 		return nil, err
 	}
-
-	return resp.Result().(*Volume).fixDates(), nil
+	return r.Result().(*Volume).fixDates(), nil
 }
 
 // CloneVolume clones a Linode volume
@@ -214,38 +252,38 @@ func (c *Client) CloneVolume(ctx context.Context, id int, label string) (*Volume
 }
 
 // DetachVolume detaches a Linode volume
-func (c *Client) DetachVolume(ctx context.Context, id int) (bool, error) {
+func (c *Client) DetachVolume(ctx context.Context, id int) error {
 	body := ""
 
 	e, err := c.Volumes.Endpoint()
 	if err != nil {
-		return false, NewError(err)
+		return NewError(err)
 	}
 
 	e = fmt.Sprintf("%s/%d/detach", e, id)
 
-	resp, err := coupleAPIErrors(c.R(ctx).
+	_, err = coupleAPIErrors(c.R(ctx).
 		SetBody(body).
 		Post(e))
 
-	return settleBoolResponseOrError(resp, err)
+	return err
 }
 
 // ResizeVolume resizes an instance to new Linode type
-func (c *Client) ResizeVolume(ctx context.Context, id int, size int) (bool, error) {
+func (c *Client) ResizeVolume(ctx context.Context, id int, size int) error {
 	body := fmt.Sprintf("{\"size\": %d}", size)
 
 	e, err := c.Volumes.Endpoint()
 	if err != nil {
-		return false, NewError(err)
+		return NewError(err)
 	}
 	e = fmt.Sprintf("%s/%d/resize", e, id)
 
-	resp, err := coupleAPIErrors(c.R(ctx).
+	_, err = coupleAPIErrors(c.R(ctx).
 		SetBody(body).
 		Post(e))
 
-	return settleBoolResponseOrError(resp, err)
+	return err
 }
 
 // DeleteVolume deletes the Volume with the specified id
@@ -256,9 +294,6 @@ func (c *Client) DeleteVolume(ctx context.Context, id int) error {
 	}
 	e = fmt.Sprintf("%s/%d", e, id)
 
-	if _, err := coupleAPIErrors(c.R(ctx).Delete(e)); err != nil {
-		return err
-	}
-
-	return nil
+	_, err = coupleAPIErrors(c.R(ctx).Delete(e))
+	return err
 }

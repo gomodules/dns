@@ -8,15 +8,15 @@ import (
 	"strings"
 	"time"
 
-	dp "github.com/appscode/go-dns/provider"
-	"github.com/appscode/envconfig"
-	"github.com/linode/linodego"
-	"github.com/xenolf/lego/acme"
-	"golang.org/x/oauth2"
-	"net/http"
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/linode/linodego"
+	"github.com/xenolf/lego/acme"
+	"golang.org/x/oauth2"
+	dp "gomodules.xyz/dns/provider"
+	"gomodules.xyz/envconfig"
+	"net/http"
 )
 
 const (
@@ -113,9 +113,9 @@ func (p *DNSProvider) EnsureARecord(domain string, ip string) error {
 		}
 	}
 	_, err = p.linode.CreateDomainRecord(context.TODO(), zone.domainId, linodego.DomainRecordCreateOptions{
-		Type: "A",
+		Type:   "A",
 		Target: ip,
-		Name:  zone.resourceName,
+		Name:   zone.resourceName,
 		TTLSec: 300,
 	})
 	return err
@@ -138,7 +138,7 @@ func (p *DNSProvider) DeleteARecords(domain string) error {
 	}
 	for _, record := range records {
 		if record.Type == "A" && record.Name == zone.resourceName {
-			 err = p.linode.DeleteDomainRecord(context.TODO(), zone.domainId, record.ID)
+			err = p.linode.DeleteDomainRecord(context.TODO(), zone.domainId, record.ID)
 			if err != nil {
 				return err
 			}

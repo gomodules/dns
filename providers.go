@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/appscode/go-dns/aws"
-	"github.com/appscode/go-dns/azure"
-	"github.com/appscode/go-dns/cloudflare"
-	"github.com/appscode/go-dns/digitalocean"
-	"github.com/appscode/go-dns/googlecloud"
-	"github.com/appscode/go-dns/linode"
-	dp "github.com/appscode/go-dns/provider"
-	"github.com/appscode/go-dns/vultr"
+	"gomodules.xyz/dns/aws"
+	"gomodules.xyz/dns/azure"
+	"gomodules.xyz/dns/cloudflare"
+	"gomodules.xyz/dns/digitalocean"
+	"gomodules.xyz/dns/googlecloud"
+	"gomodules.xyz/dns/linode"
+	dp "gomodules.xyz/dns/provider"
+	"gomodules.xyz/dns/vultr"
 )
 
 func Default(name string) (dp.Provider, error) {

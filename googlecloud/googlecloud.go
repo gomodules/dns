@@ -9,12 +9,12 @@ import (
 	"net/http"
 	"time"
 
-	dp "github.com/appscode/go-dns/provider"
 	"github.com/appscode/go/strings"
-	"github.com/appscode/envconfig"
 	"github.com/xenolf/lego/acme"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
+	dp "gomodules.xyz/dns/provider"
+	"gomodules.xyz/envconfig"
 	"google.golang.org/api/dns/v1"
 )
 
