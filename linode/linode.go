@@ -11,12 +11,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/linode/linodego"
 	"github.com/xenolf/lego/acme"
 	"golang.org/x/oauth2"
 	dp "gomodules.xyz/dns/provider"
 	"gomodules.xyz/envconfig"
-	"net/http"
 )
 
 const (

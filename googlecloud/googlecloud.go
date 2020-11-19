@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/appscode/go/strings"
+	"gomodules.xyz/x/strings"
 	"github.com/xenolf/lego/acme"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
