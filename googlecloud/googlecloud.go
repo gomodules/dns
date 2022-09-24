@@ -54,7 +54,7 @@ func New(opt Options) (*DNSProvider, error) {
 	var client *http.Client
 	var err error
 	if opt.CredentialFile != "" {
-		opt.JsonKey, err = ioutil.ReadFile(opt.CredentialFile)
+		opt.JsonKey, err = os.ReadFile(opt.CredentialFile)
 		if err != nil {
 			return nil, err
 		}
