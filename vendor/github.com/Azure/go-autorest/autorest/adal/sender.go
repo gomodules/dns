@@ -15,13 +15,24 @@ package adal
 //  limitations under the License.
 
 import (
+	"crypto/tls"
+	"net"
 	"net/http"
+	"net/http/cookiejar"
+	"sync"
+	"time"
+
+	"github.com/Azure/go-autorest/tracing"
 )
 
 const (
 	contentType      = "Content-Type"
 	mimeTypeFormPost = "application/x-www-form-urlencoded"
 )
+
+// DO NOT ACCESS THIS DIRECTLY.  go through sender()
+var defaultSender Sender
+var defaultSenderInit = &sync.Once{}
 
 // Sender is the interface that wraps the Do method to send HTTP requests.
 //
@@ -38,14 +49,14 @@ func (sf SenderFunc) Do(r *http.Request) (*http.Response, error) {
 	return sf(r)
 }
 
-// SendDecorator takes and possibily decorates, by wrapping, a Sender. Decorators may affect the
+// SendDecorator takes and possibly decorates, by wrapping, a Sender. Decorators may affect the
 // http.Request and pass it along or, first, pass the http.Request along then react to the
 // http.Response result.
 type SendDecorator func(Sender) Sender
 
 // CreateSender creates, decorates, and returns, as a Sender, the default http.Client.
 func CreateSender(decorators ...SendDecorator) Sender {
-	return DecorateSender(&http.Client{}, decorators...)
+	return DecorateSender(sender(), decorators...)
 }
 
 // DecorateSender accepts a Sender and a, possibly empty, set of SendDecorators, which is applies to
@@ -57,4 +68,34 @@ func DecorateSender(s Sender, decorators ...SendDecorator) Sender {
 		s = decorate(s)
 	}
 	return s
+}
+
+func sender() Sender {
+	// note that we can't init defaultSender in init() since it will
+	// execute before calling code has had a chance to enable tracing
+	defaultSenderInit.Do(func() {
+		// copied from http.DefaultTransport with a TLS minimum version.
+		transport := &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).DialContext,
+			ForceAttemptHTTP2:     true,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS12,
+			},
+		}
+		var roundTripper http.RoundTripper = transport
+		if tracing.IsEnabled() {
+			roundTripper = tracing.NewTransport(transport)
+		}
+		j, _ := cookiejar.New(nil)
+		defaultSender = &http.Client{Jar: j, Transport: roundTripper}
+	})
+	return defaultSender
 }
