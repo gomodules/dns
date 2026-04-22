@@ -1,6 +1,6 @@
 module gomodules.xyz/dns
 
-go 1.19
+go 1.23.0
 
 require (
 	github.com/Azure/azure-sdk-for-go v14.6.0+incompatible
@@ -15,7 +15,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	github.com/xenolf/lego v2.6.0+incompatible
 	golang.org/x/net v0.7.0
-	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
+	golang.org/x/oauth2 v0.27.0
 	gomodules.xyz/envconfig v1.3.0
 	gomodules.xyz/x v0.0.14
 	google.golang.org/api v0.57.0
@@ -32,7 +32,6 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8 // indirect
