@@ -1,6 +1,6 @@
 module gomodules.xyz/dns
 
-go 1.19
+go 1.24.0
 
 require (
 	github.com/Azure/azure-sdk-for-go v14.6.0+incompatible
@@ -14,7 +14,7 @@ require (
 	github.com/linode/linodego v0.9.0
 	github.com/stretchr/testify v1.8.0
 	github.com/xenolf/lego v2.6.0+incompatible
-	golang.org/x/net v0.7.0
+	golang.org/x/net v0.47.0
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	gomodules.xyz/envconfig v1.3.0
 	gomodules.xyz/x v0.0.14
@@ -32,7 +32,6 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8 // indirect
@@ -45,11 +44,12 @@ require (
 	github.com/smartystreets/goconvey v1.7.2 // indirect
 	github.com/tent/http-link-go v0.0.0-20130702225549-ac974c61c2f9 // indirect
 	go.opencensus.io v0.23.0 // indirect
-	golang.org/x/crypto v0.6.0 // indirect
-	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
-	golang.org/x/tools v0.3.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
+	golang.org/x/mod v0.29.0 // indirect
+	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
+	golang.org/x/tools v0.38.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220502173005-c8bf987b8c21 // indirect
 	google.golang.org/grpc v1.47.0 // indirect
